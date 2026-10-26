@@ -18,6 +18,12 @@ This is not a definitive scholarly edition or an endorsement by the cited instit
 
 本站不是学术定本，也不代表所引用机构的审定意见。释字、字形年代及具体出处应以原始资料和专业研究为准。
 
+## Online use / 在线使用
+
+To use the website online, [click here](https://yyx2626.github.io/oracle_bone_network/).
+
+在线使用本网站，请[点击此处](https://yyx2626.github.io/oracle_bone_network/)。
+
 ## Offline use / 离线使用
 
 Extract the complete folder and open `index.html`. Keep `index.html` and the `assets` folder together. The main glyph collection, search, and relationship graph work offline; source links require an internet connection. The top-right control switches between simplified and traditional Chinese, and search supports the configured character correspondences.
