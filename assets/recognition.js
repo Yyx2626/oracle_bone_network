@@ -18,10 +18,10 @@ function showHeads(list, title='已释字') {
       for(const v of d.variants){
         const b=document.createElement('button');b.type='button';b.className='glyph-choice';b.title=`${v.source} ${v.page?`第${v.page}页`:''} ${v.position||''}`;
         const small=document.createElement('img');small.src=v.img;small.alt=`${shown}的另一甲骨文字形`;
-        b.append(small);b.onclick=()=>{img.src=v.img;if(window.oracleFocus)window.oracleFocus(v.id);else location.hash=`glyph-${v.id}`};strip.append(b);
+        b.append(small);b.onclick=()=>{img.src=v.img;originalBox?.remove();originalBox=window.appendOriginalGlyph(card,v.id);link.href=v.sourceUrl||`https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=${encodeURIComponent(d.trad)}`;link.textContent=v.atlas==='curated-screenshot'?'查看对照表来源 ↗':'查看香港中文大学字库字例 ↗';if(window.oracleFocus)window.oracleFocus(v.id);else location.hash=`glyph-${v.id}`};strip.append(b);
       }card.append(strip);
     }
-    const link=document.createElement('a');link.href=`https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=${encodeURIComponent(d.trad)}`;link.target='_blank';link.rel='noopener';link.textContent='查看中文大学「汉语多功能字库」 ↗';card.append(link);fragment.append(card);
+    const link=document.createElement('a');link.href=d.variants[0]?.sourceUrl || `https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=${encodeURIComponent(d.trad)}`;link.target='_blank';link.rel='noopener';link.textContent=d.variants[0]?.atlas==='curated-screenshot'?'查看对照表来源 ↗':'查看中文大学「汉语多功能字库」 ↗';card.append(link);let originalBox=window.appendOriginalGlyph(card,d.variants[0]?.id);fragment.append(card);
   }
   $('#results').append(fragment);
 }
@@ -44,7 +44,9 @@ async function loadHeads(){
   const sheetSources={synthetic:window.ORACLE_BUNDLE.syntheticAtlas,category:window.ORACLE_BUNDLE.categoryAtlas,'humanum-dog':window.ORACLE_BUNDLE.humanumAtlas,'humanum-all':window.ORACLE_BUNDLE.humanumAllAtlas,'curated-screenshot':window.ORACLE_BUNDLE.curatedScreenshotAtlas};
   const sheets=Object.fromEntries(await Promise.all(Object.entries(sheetSources).filter(([,src])=>src).map(async([name,src])=>[name,await new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=src})])));
   const canvas=document.createElement('canvas');canvas.width=56;canvas.height=56;const g=canvas.getContext('2d',{willReadFrequently:true});
+  let prepared=0;
   for(const item of items){
+    if(++prepared%64===0)await new Promise(resolve=>setTimeout(resolve,0));
     const category=item.atlas==='category', humanum=item.atlas==='humanum-dog', humanumAll=item.atlas==='humanum-all', curated=item.atlas==='curated-screenshot', columns=item.atlas==='synthetic'?1:curated?10:humanumAll?32:humanum?3:category?20:25, index=item.tile??item.id;
     const sheet=sheets[item.atlas];if(!sheet)continue;
     g.fillStyle='white';g.fillRect(0,0,56,56);g.drawImage(sheet,index%columns*56,Math.floor(index/columns)*56,56,56,0,0,56,56);
@@ -55,7 +57,7 @@ async function loadHeads(){
   allHeads=[...grouped.values()];
   $('#query').oninput=()=>{
     const q=[...new Set([...$('#query').value].filter(x=>x.trim()))];
-    const list=q.length?allHeads.filter(d=>q.includes(d.ch)||q.includes(d.trad)||(q.includes('零')&&d.ch==='霝')||q.some(ch=>window.oracleRelatedSearch?.[ch]?.labels.includes(d.ch))):allHeads.slice(0,90);
+    const list=q.length?allHeads.filter(d=>q.some(ch=>window.oracleScript.canonical(ch)===d.ch)||(q.includes('零')&&d.ch==='霝')||q.some(ch=>window.oracleRelatedSearch?.[ch]?.labels.includes(d.ch))):allHeads.slice(0,90);
     showHeads(list,q.length?'文字检索结果':'已释字（先显示前 90 个）');
     $('#feedback').textContent=q.length&&!list.length?'没有匹配的已释字；可查询扩展字库。':'';
     if(q.includes('零'))$('#feedback').textContent='零：中大未列甲骨字例；相关字霝（雨义）供参照，不是数字0的甲骨写法。';
@@ -69,40 +71,73 @@ async function loadHeads(){
   document.querySelector('.notice').textContent=`图片与手绘检索采用保比例归一化、双向轮廓距离和左右镜像比较，只提供视觉相似候选，不能直接作为释字依据。当前可比对 ${allVariants.length} 种已标注字形、${allHeads.length} 个字。`;
   document.querySelector('#upload .muted').textContent='在浏览器内按竖向空白尝试分割多个字；新算法可容忍少量平移、笔画粗细和轻微形变，复杂背景、倾斜或相连字形仍建议逐字裁剪。';
 }
-async function recognizeShapes(source){
-  if(!allVariants.length){$('#feedback').textContent='字形索引正在载入，请稍后重试。';return}
-  const pieces=source===cv?[cv.getContext('2d').getImageData(0,0,cv.width,cv.height)]:samples(source).slice(0,12), results=[];
-  const model=$('#match-model').value, allowMirror=$('#allow-mirror').checked;
-  for(const piece of pieces){
-    const shape=normalizedBits(piece);if(!shape)continue;const directShape=describe(shape),mirroredShape=flipShape(shape);
-    const ranked=allVariants.map(item=>{
-      const direct=modelDistance(directShape,item.desc,model),flipped=allowMirror&&!['左','右'].includes(item.label)?modelDistance(mirroredShape,item.desc,model):Infinity;
-      return {item,score:Math.min(direct,flipped),mirrored:flipped<direct};
-    }).sort((a,b)=>a.score-b.score);
-    const choices=[],seen=new Set();
-    // A single long horizontal stroke is structurally 一; tiny texture differences must not displace it.
-    if(shape.ratio>4.2){
-      const one=ranked.find(x=>x.item.label==='一')||allVariants.find(x=>x.label==='一');
-      if(one){choices.push(one.item?one:{item:one,score:0});seen.add('一')}
-    }
-    for(const r of ranked){const simple=TRAD_TO_SIMPLE[r.item.label]||r.item.label;if(!seen.has(simple)){choices.push(r);seen.add(simple)}if(choices.length===10)break}
-    results.push(choices);
-  }
-  $('#candidates').replaceChildren();const best=[];
-  results.forEach((choices,k)=>{
-    const group=document.createElement('div');group.className='candidate';
-    const heading=document.createElement('small');heading.textContent=`第 ${k+1} 个形状`;group.append(heading);
-    for(const {item,mirrored,score} of choices){
-      const b=document.createElement('button');b.type='button';b.className='candidate';
-      const image=document.createElement('img');image.src=item.img;image.alt='';b.append(image);
-      const simple=TRAD_TO_SIMPLE[item.label]||item.label,label=document.createElement('b');label.textContent=window.oracleScript.display(simple)+(mirrored?' · 镜像':'');b.append(label);const hint=document.createElement('small');hint.textContent=`${MATCH_MODELS[model]}距离 ${score.toFixed(3)}`;b.append(hint);
-      b.onclick=()=>{showHeads(allHeads.filter(d=>d.ch===simple),'选中的字');if(window.oracleFocus)window.oracleFocus(item.id);else location.hash=`glyph-${item.id}`};group.append(b);
-    }
-    $('#candidates').append(group);if(choices[0])best.push(TRAD_TO_SIMPLE[choices[0].item.label]||choices[0].item.label);
+// Merge canonical character rankings by rank tier, never by incomparable distances.
+function mergeRankTiers(rankings) {
+  const lists=rankings.map(({method,ranked})=>{
+    const seen=new Set();return ranked.filter(r=>{const ch=TRAD_TO_SIMPLE[r.item.label]||r.item.label;if(seen.has(ch))return false;seen.add(ch);return true}).map(r=>({...r,method}));
   });
-  $('#candidates').classList.toggle('hidden',!results.length);
-  showHeads(allHeads.filter(d=>best.includes(d.ch)),'图像检索候选');
-  $('#feedback').textContent=`找到 ${results.length} 个可能的字形区域。请点击候选确认；相似字形可能对应不同的字。`;
+  const emitted=new Set(),out=[];
+  for(let tier=0;tier<Math.max(0,...lists.map(x=>x.length));tier++){
+    const layer=new Map();
+    for(const list of lists){const r=list[tier];if(!r)continue;const ch=TRAD_TO_SIMPLE[r.item.label]||r.item.label;if(emitted.has(ch))continue;
+      if(!layer.has(ch))layer.set(ch,{...r,ch,tier:tier+1,votes:0,methods:[]});
+      const entry=layer.get(ch);entry.votes++;entry.methods.push(r.method);
+    }
+    for(const entry of [...layer.values()].sort((a,b)=>b.votes-a.votes)){emitted.add(entry.ch);out.push(entry)}
+  }
+  return out;
 }
-loadHeads().catch(()=>{$('#feedback').textContent='字形索引暂时无法载入，请刷新页面重试。'});
+let recognitionRun=0;
+async function recognizeShapes(source) {
+  if(!allVariants.length){$('#feedback').textContent='字形索引正在载入，请稍后重试。';return}
+  const run=++recognitionRun;
+  const pieces=source===cv?[cv.getContext('2d').getImageData(0,0,cv.width,cv.height)]:samples(source).slice(0,12),results=[];
+  const allowMirror=$('#allow-mirror').checked,methods=['robust','localwarp','aspect','ensemble','contour','skeleton','zones'];
+  const container=$('#candidates');container.replaceChildren();container.classList.toggle('hidden',false);
+  const progress=document.createElement('div');progress.className='recognition-progress';progress.setAttribute('role','status');progress.setAttribute('aria-live','polite');
+  const status=document.createElement('p'),track=document.createElement('div'),bar=document.createElement('div');track.className='recognition-track';bar.className='recognition-bar';track.append(bar);progress.append(status,track);container.append(progress);
+  const yieldUI=()=>new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)));
+  try {
+    for(let k=0;k<pieces.length;k++){
+      const shape=normalizedBits(pieces[k]);if(!shape)continue;
+      const directShape=describe(shape),mirroredShape=flipShape(shape),rankings=[];
+      for(let m=0;m<methods.length;m++){
+        const model=methods[m];status.textContent=`正在识别第 ${k+1} / ${pieces.length} 个字形 · 已完成 ${m} / ${methods.length} 种匹配`;
+        bar.style.width=`${Math.max(3,100*(k*methods.length+m)/(pieces.length*methods.length))}%`;
+        $('#feedback').textContent='正在综合比较字形，请稍候…';await yieldUI();if(run!==recognitionRun)return;
+        const ranked=model==='localwarp'?await rankLocalWarp(directShape,allVariants,allowMirror):model==='robust'?rankRobust(directShape,allVariants,allowMirror):allVariants.map(item=>{
+          const direct=modelDistance(directShape,item.desc,model),flipped=allowMirror&&!['左','右'].includes(item.label)?modelDistance(mirroredShape,item.desc,model):Infinity;
+          return {item,score:Math.min(direct,flipped),mirrored:flipped<direct};
+        }).sort((a,b)=>a.score-b.score);
+        if(run!==recognitionRun)return;
+        // Preserve the existing long-horizontal-stroke structural prior in each ranking.
+        if(shape.ratio>4.2){const pos=ranked.findIndex(x=>x.item.label==='一');if(pos>0)ranked.unshift(ranked.splice(pos,1)[0]);}
+        rankings.push({method:model,ranked});
+      }
+      results.push(mergeRankTiers(rankings));
+    }
+    if(run!==recognitionRun)return;
+    container.replaceChildren();const best=[];
+    results.forEach((choices,k)=>{
+      const group=document.createElement('div');group.className='candidate-group';
+      const heading=document.createElement('small'),grid=document.createElement('div');grid.className='candidate-grid';group.append(heading,grid);
+      let visibleCount=0;const more=document.createElement('button');more.type='button';more.className='btn secondary';
+      const appendChoices=()=>{
+        for(const {item,mirrored,tier,votes,methods:matched} of choices.slice(visibleCount,visibleCount+16)){
+          const b=document.createElement('button');b.type='button';b.className='candidate candidate-choice';
+          const image=document.createElement('img');image.src=item.img;image.alt='';b.append(image);
+          const simple=TRAD_TO_SIMPLE[item.label]||item.label,label=document.createElement('b');label.textContent=window.oracleScript.display(simple)+(mirrored?' · 镜像':'');b.append(label);
+
+          b.onclick=()=>{showHeads(allHeads.filter(d=>d.ch===simple),'选中的字');if(window.oracleFocus)window.oracleFocus(item.id);else location.hash=`glyph-${item.id}`};grid.append(b);
+        }
+        visibleCount=Math.min(choices.length,visibleCount+16);heading.textContent=`第 ${k+1} 个形状 · 已显示 ${visibleCount} / ${choices.length} 个候选`;
+        if(visibleCount<choices.length){more.textContent='显示更多16个';group.append(more)}else more.remove();
+      };
+      more.onclick=appendChoices;appendChoices();container.append(group);if(choices[0])best.push(choices[0].ch);
+    });
+    container.classList.toggle('hidden',!results.length);showHeads(allHeads.filter(d=>best.includes(d.ch)),'图像检索候选');
+    $('#feedback').textContent=results.length?'已综合七种方法：按名次逐层合并，同层命中方法更多的优先；点击候选确认，或显示更多16个。':'未发现有效笔画，请重新绘制。';
+  }catch(error){if(run!==recognitionRun)return;container.replaceChildren();$('#feedback').textContent='识别未完成，请重试。';console.error(error)}
+}
+loadHeads().then(()=>window.oracleMarkReady?.('recognition')).catch(()=>{window.oracleLoadFailed?.();$('#feedback').textContent='字形索引暂时无法载入，请刷新页面重试。'});
 window.addEventListener('oracle-script-change',()=>{$('#query')?.oninput?.()});

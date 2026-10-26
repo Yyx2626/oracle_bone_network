@@ -12,7 +12,7 @@ const forwardTrail=[];
 let categoryMode="meaning";
 let neighborCount=12;
 const headwords = new Map();
-const browseLabel = label => label==='萬' ? '万' : label;
+const browseLabel = label => window.oracleScript.canonical(label);
 const orderedCategories = ['天干','地支','数字'];
 const categoryOrders = {
   '天干':[...'甲乙丙丁戊己庚辛壬癸'],
@@ -32,16 +32,21 @@ function name(node) {
 
 function nodeDetail(id, score = null, shape = null) {
   const node = graph.nodes[id];
+  const groupVariants = headwords.get(browseLabel(node.label)) || [node];
+  const hasDifferentOriginalLabels = new Set(groupVariants.map(item => item.label)).size > 1;
   detail.replaceChildren();
   const heading = document.createElement('strong');
-  heading.textContent = node.label ? window.oracleScript.display(node.label) : '待核对释字';
+  const simpleLabel = window.oracleScript.canonical(node.label || '');
+  const traditionalLabel = window.oracleScript.traditional(simpleLabel);
+  heading.textContent = node.label ? (simpleLabel !== traditionalLabel ? `${simpleLabel}/${traditionalLabel}` : simpleLabel) : '待核对释字';
+  heading.setAttribute('data-original-script', 'true');
   detail.append(heading);
-  const lines = [node.synthetic ? '人工镜像补充：由中大“左”字例水平翻转；非中大提供的“右”原图' : node.source === '用户截图' || node.source === '用户截图（人工逐条审校）'
-    ? `用户提供的对照表截图第 ${node.page} 页，位置 ${node.position}`
+  const lines = [hasDifferentOriginalLabels ? '来源原始字头：'+node.label : '', node.synthetic ? '人工镜像补充：由中大“左”字例水平翻转；非中大提供的“右”原图' : node.atlas === 'curated-screenshot'
+    ? (node.page ? `对照表第 ${node.page} 张，位置 ${node.position}${node.pdfPage ? "；来源PDF第 "+node.pdfPage+" 页" : ""}` : node.source)
     : node.atlas === 'humanum-dog' || node.atlas === 'humanum-all'
       ? `中文大学「汉语多功能字库」甲骨字例 ${node.position}；本站据图片录入`
       : `character-evolution-dataset-1bit 扩展字库条目：${node.position}；不是中文大学字库图片`,
-    node.labelStatus,
+    node.sourceCitation || node.labelStatus,
     node.imageQualityWarning ? '图像疑似黑块或空白，仅供核查' : '',
     node.components?.length ? `甲骨部件：${node.components.join('、')}` : '',
     node.category.length ? `主题：${node.category.join('、')}` : '主题：其他 / 未分类'];
@@ -49,7 +54,7 @@ function nodeDetail(id, score = null, shape = null) {
   if (score !== null) lines.push(`甲骨字形相似指标 ${(shape * 100).toFixed(0)} / 100（不是释读概率）。`);
   if (node.watermark) lines.push(`${node.watermark}水印已预处理；原笔画可能仍有缺损`);
   const p = document.createElement('p');
-  p.textContent = lines.join(' · ');
+  p.textContent = lines.filter(Boolean).join(' · ');
   detail.append(p);
   if(node.source === '用户截图') {
     const caption=document.createElement('div');caption.className='original-caption';
@@ -60,12 +65,12 @@ function nodeDetail(id, score = null, shape = null) {
   }
   if (node.label && headwords.get(browseLabel(node.label))?.length >= 1) {
     const variants = document.createElement('div'); variants.className = 'variant-switch';
-    const title = document.createElement('span'); title.textContent = `${browseLabel(node.label)==='万'?'万／萬合并浏览的':'同一个字的'} ${headwords.get(browseLabel(node.label)).length} 幅字形（人工代表优先，其余按聚类排序）：`; title.className='variant-title'; variants.append(title);
+    const title = document.createElement('span'); title.textContent = `${browseLabel(node.label)==='万'?'万／萬合并浏览的':'该繁简检索组的'} ${headwords.get(browseLabel(node.label)).length} 幅字形（人工代表优先，其余按聚类排序）：`; title.className='variant-title'; variants.append(title);
     for (const alternative of headwords.get(browseLabel(node.label))) {
       const button=document.createElement('button'); button.type='button';
       button.className = alternative.id === id ? 'active' : '';
       button.append(tile(alternative,32,31,58));
-      const text=document.createElement('span');text.textContent=alternative.synthetic ? '人工镜像补充' : alternative.source?.startsWith('用户截图') ? `审校图 第${alternative.page}页` : alternative.atlas?.startsWith('humanum-') ? `中大 ${alternative.position}` : '扩展';button.append(text);
+      const text=document.createElement('span');text.textContent=alternative.synthetic ? '人工镜像补充' : alternative.atlas==='curated-screenshot' ? (alternative.kind === "opening-list" ? "姓氏图" : alternative.kind === "source-chart" ? "拼音字形表" : alternative.page ? `对照表 第${alternative.page}页` : "补充字形") : alternative.atlas?.startsWith('humanum-') ? `中大 ${alternative.position}` : '扩展';if(hasDifferentOriginalLabels)text.textContent += ` · 原字头 ${alternative.label}`;button.append(text);
       button.title=`第${alternative.variantCluster||1}类 · ${alternative.variantClusterSize||1}幅${alternative.representativeCurated?' · 人工指定代表图':alternative.representative?' · 代表图':''}`;
       button.onclick = () => focus(alternative.id); variants.append(button);
     }
@@ -86,8 +91,10 @@ function nodeDetail(id, score = null, shape = null) {
   if (node.label) {
     const a = document.createElement('a');
     a.href = node.sourceUrl || `https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=${encodeURIComponent(node.label)}`;
-    a.target = '_blank'; a.rel = 'noopener'; a.textContent = '查看中文大学字库字例（仅标注为中大来源的图片取自此处） ↗';
+    a.target = '_blank'; a.rel = 'noopener'; a.textContent = node.atlas==='curated-screenshot' ? '查看对照表来源 ↗' : '查看中文大学字库字例（仅标注为中大来源的图片取自此处） ↗';
     detail.append(a);
+    for(const source of node.sourceLinks||[]){if(source.url===a.href)continue;const link=document.createElement('a');link.href=source.url;link.textContent=source.label+' ↗';link.target='_blank';link.rel='noopener';link.style.display='block';detail.append(link);}
+    window.appendOriginalGlyph(detail, node.id);
   }
 }
 
@@ -125,13 +132,13 @@ function focus(id, recordHistory=true) {
   document.querySelector('#network-back').disabled=navigationTrail.length===0;
   document.querySelector('#network-forward').disabled=forwardTrail.length===0;
   const used = new Set([id]);
-  const usedNames = new Set(graph.nodes[id].label ? [graph.nodes[id].label] : []);
+  const usedNames = new Set(graph.nodes[id].label ? [browseLabel(graph.nodes[id].label)] : []);
   const first = [];
   for (const item of graph.neighbors[id]) {
     if (first.length >= neighborCount) break;
     if (used.has(item[0])) continue;
     if(graph.nodes[item[0]].excluded) continue;
-    const label=graph.nodes[item[0]].label; if(label && usedNames.has(label)) continue;
+    const label=browseLabel(graph.nodes[item[0]].label); if(label && usedNames.has(label)) continue;
     first.push(item); used.add(item[0]); if(label) usedNames.add(label);
   }
   const second = [];
@@ -140,7 +147,7 @@ function focus(id, recordHistory=true) {
     for (const item of graph.neighbors[parent[0]]) {
       if (used.has(item[0])) continue;
       if(graph.nodes[item[0]].excluded) continue;
-      const label=graph.nodes[item[0]].label; if(label && usedNames.has(label)) continue;
+      const label=browseLabel(graph.nodes[item[0]].label); if(label && usedNames.has(label)) continue;
       second.push({item, parent:idx, offset:count});
       used.add(item[0]); if(label) usedNames.add(label);
       if (++count === 2) break;
@@ -168,7 +175,8 @@ function focus(id, recordHistory=true) {
       'aria-label':`${name(node)}，点击移到关系图中心`});
     group.append(S('circle',{cx:x,cy:y,r:radius+5}));
     group.append(tile(node,x,y,radius*1.65));
-    const label=S('text',{x,y:y+radius+(level===2?17:27),class:level===2?'minor':''});
+    const label=S('text',{x,y:y+radius+(level===2?17:25),class:level===2?'minor':''});
+    if(level===0) label.style.fontWeight='700';
     label.textContent=node.label ? window.oracleScript.display(node.label) : (level===0 ? '释字待核' : `第${node.page}页`);
     group.append(label);
     group.addEventListener('click',()=>focus(id));
@@ -279,7 +287,8 @@ try {
   const fallback=headwords.get('王')?.[0] || graph.nodes.find(n=>!n.excluded&&n.atlas==='humanum-all') || graph.nodes.find(n=>!n.excluded);
   const id=requested?Number(requested[1]):fallback.id;
   focus(id>=0&&id<graph.nodes.length&&!graph.nodes[id].excluded?id:fallback.id);
-}catch(e){detail.textContent='关系图暂时无法载入，请刷新页面重试。'}
+window.oracleMarkReady?.('network');
+}catch(e){window.oracleLoadFailed?.();detail.textContent='关系图暂时无法载入，请刷新页面重试。'}
 })();
 
 for (const [id, open] of [["categories-expand", true], ["categories-collapse", false]]) {

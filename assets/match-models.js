@@ -27,7 +27,18 @@ function enrichDescriptor(d) {
   return {...d,skeleton:{bits,distance:distanceMap(bits)},zones:zoneFeatures(bits)};
 }
 function featureDistance(a,b) {let sum=0;for(let i=0;i<a.length;i++)sum+=Math.abs(a[i]-b[i]);return sum/6;}
+// Normalize horizontal and vertical extent independently for handwriting proportions.
+function aspectNormalizedDescriptor(d) {
+  if(d.aspectNormalized)return d.aspectNormalized;
+  let x0=32,y0=32,x1=-1,y1=-1;
+  for(let y=0;y<32;y++)for(let x=0;x<32;x++)if(d.bits[y*32+x]){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}
+  if(x1<0)return d;
+  const bits=new Uint8Array(1024);
+  for(let y=0;y<28;y++)for(let x=0;x<28;x++)bits[(y+2)*32+x+2]=d.bits[Math.round(y0+y*(y1-y0)/27)*32+Math.round(x0+x*(x1-x0)/27)];
+  d.aspectNormalized=describe({bits,ratio:1});return d.aspectNormalized;
+}
 function modelDistance(a,b,model) {
+  if(model==='aspect')return modelDistance(aspectNormalizedDescriptor(a),aspectNormalizedDescriptor(b),'ensemble');
   const contour=scoreShape(a,b);
   if(model==='contour')return contour;
   const skeleton=scoreShape(a.skeleton,b.skeleton);
@@ -36,11 +47,70 @@ function modelDistance(a,b,model) {
   if(model==='zones')return zones;
   return .35*contour+.45*skeleton+.20*zones;
 }
-const MATCH_MODELS={ensemble:'融合',contour:'双向轮廓',skeleton:'骨架',zones:'分区与投影'};
+// Multi-view retrieval: retain the best candidates from both aspect policies,
+// then compare small rotations without using character identities as priors.
+function rotatedDescriptor(shape, degrees) {
+  if(!degrees)return shape;
+  const side=48,data=new Uint8ClampedArray(side*side*4);data.fill(255);
+  const angle=degrees*Math.PI/180,c=Math.cos(angle),s=Math.sin(angle);
+  for(let y=0;y<side;y++)for(let x=0;x<side;x++){
+    const dx=x-(side-1)/2,dy=y-(side-1)/2;
+    const sx=Math.round(c*dx+s*dy+15.5),sy=Math.round(-s*dx+c*dy+15.5);
+    if(sx>=0&&sx<32&&sy>=0&&sy<32&&shape.bits[sy*32+sx]){const k=(y*side+x)*4;data[k]=data[k+1]=data[k+2]=0;}
+  }
+  return describe(normalizedBits({data,width:side,height:side}));
+}
+function rankRobust(shape, items, allowMirror=true) {
+  const flipped=flipShape(shape),records=items.map(item=>{
+    const mirror=allowMirror&&!['左','右'].includes(item.label);
+    const direct=modelDistance(shape,item.desc,'ensemble'),aspect=modelDistance(shape,item.desc,'aspect');
+    const flippedDirect=mirror?modelDistance(flipped,item.desc,'ensemble'):Infinity;
+    const flippedAspect=mirror?modelDistance(flipped,item.desc,'aspect'):Infinity;
+    return {item,base:Math.min(direct,flippedDirect),aspect:Math.min(aspect,flippedAspect),score:Math.min(direct,aspect,flippedDirect,flippedAspect),mirrored:Math.min(flippedDirect,flippedAspect)<Math.min(direct,aspect)};
+  });
+  const shortlist=new Set([...records].sort((a,b)=>a.base-b.base).slice(0,256).concat([...records].sort((a,b)=>a.aspect-b.aspect).slice(0,256)));
+  for(const angle of [-15,-10,-5,5,10,15]){
+    const d=rotatedDescriptor(shape,angle),f=flipShape(d);
+    for(const r of shortlist){
+      const direct=Math.min(modelDistance(d,r.item.desc,'ensemble'),modelDistance(d,r.item.desc,'aspect'));
+      const reverse=allowMirror&&!['左','右'].includes(r.item.label)?Math.min(modelDistance(f,r.item.desc,'ensemble'),modelDistance(f,r.item.desc,'aspect')):Infinity;
+      const score=Math.min(direct,reverse);
+      if(score<r.score){r.score=score;r.mirrored=reverse<direct;}
+    }
+  }
+  return records.sort((a,b)=>a.score-b.score);
+}
+
+// Experimental vertical piecewise deformation; no character-specific ranking.
+function localWarpDescriptor(shape, midpoint) {
+  const data=new Uint8ClampedArray(4096);data.fill(255);
+  for(let y=2;y<30;y++)for(let x=0;x<32;x++){
+    const sy=y<16?2+(y-2)*(midpoint-2)/14:midpoint+(y-16)*(30-midpoint)/14;
+    if(shape.bits[Math.min(31,Math.round(sy))*32+x]){const k=(y*32+x)*4;data[k]=data[k+1]=data[k+2]=0;}
+  }
+  return describe(normalizedBits({data,width:32,height:32}));
+}
+async function rankLocalWarp(shape,items,allowMirror=true) {
+  const views=[8,10,12,14,16,18,20,22,24].map(mid=>{const d=localWarpDescriptor(shape,mid);return [d,flipShape(d)]});
+  const ranked=[];
+  for(let i=0;i<items.length;i++){
+    if(i%256===0)await new Promise(resolve=>setTimeout(resolve,0));
+    const item=items[i];let score=Infinity,mirrored=false;
+    for(const [d,f] of views){
+      const direct=modelDistance(d,item.desc,'aspect');
+      const reverse=allowMirror&&!['左','右'].includes(item.label)?modelDistance(f,item.desc,'aspect'):Infinity;
+      if(Math.min(direct,reverse)<score){score=Math.min(direct,reverse);mirrored=reverse<direct;}
+    }
+    ranked.push({item,score,mirrored});
+  }
+  return ranked.sort((a,b)=>a.score-b.score);
+}
+
+const MATCH_MODELS={localwarp:"局部比例容错",robust:"综合容错",aspect:'宽高容错',ensemble:'融合',contour:'双向轮廓',skeleton:'骨架',zones:'分区与投影'};
 function installModelControls(){
   const box=document.createElement('div');box.className='model-controls';box.style.cssText='display:flex;flex-direction:column;gap:10px;margin:16px 0';
-  box.innerHTML='<label for="match-model">匹配方法</label><select id="match-model"><option value="ensemble">融合（实验）</option><option value="contour">双向轮廓（基线）</option><option value="skeleton">骨架距离（减弱笔画粗细影响）</option><option value="zones">分区与投影（整体结构）</option></select><label><input type="checkbox" id="allow-mirror" checked>允许左右镜像（左、右除外）</label>';
+  box.innerHTML='<label><input type="checkbox" id="allow-mirror" checked>允许左右镜像（左、右除外）</label>';
   document.querySelector('.notice').before(box);
-  const note=document.createElement('p');note.className='muted';note.textContent='四种离线模板方法，非训练式 OCR。位置和大小归一化；分数是距离而非正确概率。可用同一幅手绘切换方法后重新搜索。';box.after(note);
+
 }
 installModelControls();
