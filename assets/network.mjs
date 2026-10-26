@@ -168,7 +168,7 @@ function focus(id, recordHistory=true) {
       'aria-label':`${name(node)}，点击移到关系图中心`});
     group.append(S('circle',{cx:x,cy:y,r:radius+5}));
     group.append(tile(node,x,y,radius*1.65));
-    const label=S('text',{x,y:y+radius+17,class:level===2?'minor':''});
+    const label=S('text',{x,y:y+radius+(level===2?17:27),class:level===2?'minor':''});
     label.textContent=node.label ? window.oracleScript.display(node.label) : (level===0 ? '释字待核' : `第${node.page}页`);
     group.append(label);
     group.addEventListener('click',()=>focus(id));
@@ -200,7 +200,7 @@ function buildCategories() {
         return (ai<0?999:ai)-(bi<0?999:bi);
       });
     const panel=document.createElement('details');
-    if(orderedCategories.includes(cat))panel.open=true;
+    panel.open=true;
     const title=document.createElement('summary');
     title.textContent=`${cat}（${entries.length}）`;
     panel.append(title);
@@ -281,3 +281,7 @@ try {
   focus(id>=0&&id<graph.nodes.length&&!graph.nodes[id].excluded?id:fallback.id);
 }catch(e){detail.textContent='关系图暂时无法载入，请刷新页面重试。'}
 })();
+
+for (const [id, open] of [["categories-expand", true], ["categories-collapse", false]]) {
+ document.getElementById(id).onclick=()=>document.querySelectorAll("#category-list details").forEach(panel=>{panel.open=open;});
+}

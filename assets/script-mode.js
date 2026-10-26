@@ -39,35 +39,6 @@
   });
 })();
 
-// Expand the institution name in visible source attribution, preserving raw data keys.
-(() => {
-  const fullName = text => text.replace(/(?<!香港)中文大学/g, '香港中文大学');
-  const update = root => {
-    if (root.nodeType === Node.TEXT_NODE) {
-      if (!['SCRIPT', 'STYLE'].includes(root.parentElement?.tagName)) {
-        const value = fullName(root.nodeValue);
-        if (value !== root.nodeValue) root.nodeValue = value;
-      }
-      return;
-    }
-    if (root.nodeType !== Node.ELEMENT_NODE || ['SCRIPT', 'STYLE'].includes(root.tagName)) return;
-    for (const key of ['title', 'aria-label', 'alt']) {
-      const value = root.getAttribute(key);
-      if (value && fullName(value) !== value) root.setAttribute(key, fullName(value));
-    }
-    for (const child of root.childNodes) update(child);
-  };
-  window.addEventListener('DOMContentLoaded', () => {
-    update(document.body);
-    new MutationObserver(records => {
-      for (const record of records) {
-        if (record.type === 'childList') record.addedNodes.forEach(update);
-        else update(record.target);
-      }
-    }).observe(document.body, {childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['title', 'aria-label', 'alt']});
-  });
-})();
-
 window.oracleRelatedSearch = {
   '有': { labels: ['㞢', '又'], note: '有：关联检索㞢、又。香港中文大学记载㞢在甲骨文中通读为有、又；保留各字原始标签及来源。' },
   '佑': { labels: ['㞢', '又'], note: '佑：关联检索㞢、又。㞢、又在卜辞中可用作福祐之祐；此为用法关联，不将原字形改标为佑。' },
