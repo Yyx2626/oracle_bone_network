@@ -1,0 +1,50 @@
+.category-items {
+  grid-template-columns: repeat(5, minmax(0,1fr));
+  gap: 6px;
+}
+
+.category-items button,
+.other-list button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 5px 2px;
+}
+
+.category-items button svg,
+.other-list button svg {
+  display: block;
+  max-width: 100%;
+}
+
+.other-list {
+  grid-template-columns: repeat(5, minmax(0,1fr));
+}
+
+.other-list button.selected {
+  background: #165267;
+  color: #fff;
+}
+
+.network-wrap, main { max-width:1560px; }
+.network-layout { grid-template-columns:440px minmax(0,1fr); }
+main { grid-template-columns:440px minmax(0,1fr); }
+.network-head h2, #network-total { white-space:nowrap; }
+#network-total { font-size:12px; }
+#category-mode { width:100%; margin:6px 0 12px; padding:8px; }
+@media (max-width:1100px) { .network-layout {display:flex;flex-direction:column-reverse;} main{display:block;} }
+@media (max-width:480px) { .network-head{flex-wrap:wrap;} .category-items,.other-list{grid-template-columns:repeat(4,minmax(0,1fr));} }
+
+/* Let the category scroller fill the graph panel height. */
+.network-layout > aside.network-panel { display:flex; flex-direction:column; min-height:0; }
+.network-layout > aside .category-list { flex:1 1 0; height:0; min-height:540px; max-height:none; }
+@media(max-width:1100px) {
+ .network-layout > aside .category-list { flex:none; height:70vh; min-height:360px; max-height:900px; }
+}
+
+.neighbor-control {display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:14px;}
+#neighbor-count {width:64px;padding:6px;border:1px solid #bdcccc;border-radius:6px;}
+.network-layout > .network-panel > .network-head {flex-wrap:wrap;gap:10px;}
