@@ -7,6 +7,9 @@ const search = document.querySelector('#network-query');
 const message = document.querySelector('#network-message');
 const NS = 'http://www.w3.org/2000/svg';
 let graph, center = null, shownOthers = 80;
+const atlasURLs={};
+const categoryReveals=[];
+function sharedAtlas(key){if(!atlasURLs[key]){const uri=window.ORACLE_BUNDLE[key];if(!uri?.startsWith('data:'))return uri;const comma=uri.indexOf(',');atlasURLs[key]=URL.createObjectURL(new Blob([window.oracleBase64Bytes(uri.slice(comma+1))],{type:uri.slice(5,uri.indexOf(';'))}));}return atlasURLs[key];}
 const navigationTrail=[];
 const forwardTrail=[];
 let categoryMode="meaning";
@@ -99,12 +102,12 @@ function nodeDetail(id, score = null, shape = null) {
 }
 
 function atlasInfo(node) {
-  if(node.atlas==='synthetic') return {columns:1,rows:1,asset:window.ORACLE_BUNDLE.syntheticAtlas};
-  if(node.atlas === 'curated-screenshot') return {columns:graph.curatedScreenshotColumns||10,rows:graph.curatedScreenshotRows,asset:window.ORACLE_BUNDLE.curatedScreenshotAtlas};
-  if(node.atlas === 'humanum-all') return {columns:graph.humanumAllColumns||32,rows:graph.humanumAllRows,asset:window.ORACLE_BUNDLE.humanumAllAtlas};
-  if(node.atlas === 'humanum-dog') return {columns:3,rows:graph.humanumRows,asset:window.ORACLE_BUNDLE.humanumAtlas};
-  if(node.atlas === 'category') return {columns:graph.categoryColumns,rows:graph.categoryRows,asset:window.ORACLE_BUNDLE.categoryAtlas};
-  return {columns:graph.atlasColumns,rows:graph.atlasRows,asset:window.ORACLE_BUNDLE.oracleAtlas};
+  if(node.atlas==='synthetic') return {columns:1,rows:1,asset:sharedAtlas('syntheticAtlas')};
+  if(node.atlas === 'curated-screenshot') return {columns:graph.curatedScreenshotColumns||10,rows:graph.curatedScreenshotRows,asset:sharedAtlas('curatedScreenshotAtlas')};
+  if(node.atlas === 'humanum-all') return {columns:graph.humanumAllColumns||32,rows:graph.humanumAllRows,asset:sharedAtlas('humanumAllAtlas')};
+  if(node.atlas === 'humanum-dog') return {columns:3,rows:graph.humanumRows,asset:sharedAtlas('humanumAtlas')};
+  if(node.atlas === 'category') return {columns:graph.categoryColumns,rows:graph.categoryRows,asset:sharedAtlas('categoryAtlas')};
+  return {columns:graph.atlasColumns,rows:graph.atlasRows,asset:sharedAtlas('oracleAtlas')};
 }
 
 function tile(node, x, y, size) {
@@ -197,11 +200,13 @@ function focus(id, recordHistory=true) {
 
 function buildCategories() {
   list.replaceChildren();
+  categoryReveals.length=0;
   total.textContent = `${headwords.size} 个已释字 · ${graph.nodes.filter(n=>!n.excluded).length} 幅字形`;
   const categories=categoryMode==='component' ? [...graph.componentCategories,'部件待核对'] : [...orderedCategories,...graph.categories.filter(cat=>!orderedCategories.includes(cat)),'其他 / 未分类'];
   for (const cat of categories) {
     const raw=graph.nodes.filter(n=>{const cats=categoryMode==='component'?(n.components||[]):n.category;return !n.excluded&&((cat==='其他 / 未分类'||cat==='部件待核对')?!cats.length:cats.includes(cat))});
-    const entries=raw.filter((n,i)=>!n.label || raw.findIndex(other=>browseLabel(other.label)===browseLabel(n.label))===i)
+    const categorySeen=new Set();
+    const entries=raw.filter(n=>{const key=browseLabel(n.label);if(!n.label)return true;if(categorySeen.has(key))return false;categorySeen.add(key);return true})
       .map(n=>headwords.get(browseLabel(n.label))?.[0] || n)
       .sort((a,b)=>{
         const order=categoryOrders[cat];
@@ -235,23 +240,36 @@ function buildCategories() {
       const more=document.createElement('button');
       more.className='btn secondary';more.textContent='显示更多';
       more.onclick=()=>{append(entries.slice(count,count+80));if(count>=entries.length)more.remove()};
+      categoryReveals.push(id=>{const position=entries.findIndex(n=>n.id===id);if(position>=count){append(entries.slice(count,position+1));if(count>=entries.length)more.remove()}});
       panel.append(area,more);
     }else {append(entries);panel.append(area)}
     list.append(panel);
   }
 }
 
+function focusSearchResult(id){
+  categoryReveals.forEach(reveal=>reveal(id));
+  focus(id);
+  const selected=list.querySelector(`[data-id="${id}"]`);
+  if(selected){
+    const panel=selected.closest('details');if(panel)panel.open=true;
+    const a=selected.getBoundingClientRect(),b=list.getBoundingClientRect();
+    list.scrollTop+=a.top-b.top-(list.clientHeight-a.height)/2;
+  }
+  requestAnimationFrame(()=>svg.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'}));
+}
+
 function find() {
   const query=search.value.trim();
   if(!query)return;
-  const requested=query[0],label=window.oracleScript.canonical(requested);
+  const requested=[...query][0],label=window.oracleScript.canonical(requested);
   let entry=headwords.get(label)?.[0] || [...headwords.entries()].find(([key])=>window.oracleScript.canonical(key)===label)?.[1]?.[0];
   const related=window.oracleRelatedSearch?.[requested];
-  if(!entry&&related){entry=related.labels.map(ch=>headwords.get(ch)?.[0]).find(Boolean);if(entry){focus(entry.id);message.textContent=related.note;return}}
-  if(!entry&&requested==='零'){entry=headwords.get('霝')?.[0];if(entry){focus(entry.id);message.textContent='零：中大未列甲骨字例。这里展示相关字霝（雨义），不是数字0的甲骨写法。';return}}
+  if(!entry&&related){entry=related.labels.map(ch=>headwords.get(ch)?.[0]).find(Boolean);if(entry){focusSearchResult(entry.id);message.textContent=related.note;return}}
+  if(!entry&&requested==='零'){entry=headwords.get('霝')?.[0];if(entry){focusSearchResult(entry.id);message.textContent='零：中大未列甲骨字例。这里展示相关字霝（雨义），不是数字0的甲骨写法。';return}}
   if(!entry&&/^\d{1,2}$/.test(query))entry=graph.nodes.find(n=>n.page===Number(query));
   if(!entry){message.textContent='没有匹配的已核对字。可在下方的“其他 / 未分类”中按页查看。';return}
-  message.textContent='';focus(entry.id);
+  message.textContent='';focusSearchResult(entry.id);
 }
 document.querySelector('#neighbor-count').oninput=e=>{
   if(!e.target.value)return;

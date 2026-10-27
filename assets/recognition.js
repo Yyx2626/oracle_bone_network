@@ -145,5 +145,19 @@ async function recognizeShapes(source) {
     $('#feedback').textContent=results.length?'已综合七种方法：按名次逐层合并，同层命中方法更多的优先；点击候选确认，或显示更多16个。':'未发现有效笔画，请重新绘制。';
   }catch(error){if(run!==recognitionRun)return;container.replaceChildren();$('#feedback').textContent='识别未完成，请重试。';console.error(error)}
 }
-loadHeads().then(()=>window.oracleMarkReady?.('recognition')).catch(()=>{window.oracleLoadFailed?.();$('#feedback').textContent='字形索引暂时无法载入，请刷新页面重试。'});
+let headsPromise=null;
+function ensureHeads(){
+  if(!headsPromise){
+    $('#feedback').textContent='首次使用检索：正在准备字形图片，请稍候…';
+    headsPromise=(async()=>{
+      if(!window.ORACLE_BUNDLE.recognitionBase64)await window.oracleLoadScript('assets/recognition-data.js?v=274');
+      await loadHeads();
+    })().catch(error=>{headsPromise=null;allHeads=[];allVariants=[];$('#feedback').textContent='检索索引载入失败，请再次点击重试。';throw error});
+  }
+  return headsPromise;
+}
+$('#match').onclick=async()=>{try{await ensureHeads();await recognizeShapes(cv)}catch(error){console.error(error)}};
+$('#recognize').onclick=async()=>{if(!inputImage)return;try{await ensureHeads();await recognizeShapes(inputImage)}catch(error){console.error(error)}};
+$('#query').oninput=async()=>{try{await ensureHeads()}catch(error){console.error(error)}};
+document.querySelector('.notice').textContent='网络浏览无需准备检索索引；首次文字、手写或图片搜索时按需载入。';
 window.addEventListener('oracle-script-change',()=>{$('#query')?.oninput?.()});

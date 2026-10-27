@@ -4,6 +4,18 @@ This retrospective records major changes documented during development. Early wo
 
 本记录回顾开发过程中有据可查的主要改进。早期工作因未持续记录准确发布日期和版本边界，按主题归纳，不作为完整提交历史。下列版本号对应分发的离线包。
 
+## v274 — Network-first startup and search navigation / 网络优先启动与搜索定位
+
+- Defer the recognition metadata script and full search image preparation until the first text, handwriting, or image search. The startup overlay now waits for the graph, not the search index.
+- Reuse compact Blob URLs for graph atlas rendering and use set-based category deduplication. Recognition retains the embedded image path for offline canvas compatibility.
+- Category search reveals hidden results, opens their category, centers its internal scroll position on the selected character, and scrolls the page to the graph center. Supports supplementary-plane characters.
+- Similarities remain precomputed: selection redraws two rings; the 32 setting limits the inner ring, with up to two additional neighbors per inner-ring character.
+
+- 文字、手写、图片搜索首次使用时才载入识别元数据和准备整库检索图片；启动遮罩仅等待关系图。
+- 网络图使用可复用的短 Blob 地址呈现图集，分类去重改用集合；识别保留内嵌图片路径以兼容离线画布读取。
+- 分类搜索补显尚未展开的结果、展开对应类别，将分类内部滚动定位到选中字，再将页面滚至关系图中心；支持扩展区汉字。
+- 相似关系仍为预计算，选字时重画两圈；32限制内圈数量，外圈每个内圈字最多再取2个邻居。
+
 ## v273 — Contextual supplementary glyphs / 扩展字形随选字显示
 
 - Loading the supplementary collection immediately shows the current graph character. Graph navigation and recognition-candidate selection update the expanded glyphs; text searches remain supported. Lookup includes configured simplified/traditional counterparts with duplicate forms removed.
