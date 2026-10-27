@@ -187,6 +187,8 @@ function focus(id, recordHistory=true) {
   first.forEach((v,k)=>add(v[0],...xy1[k],1,k));
   add(id,cx,cy,0,0);
   nodeDetail(id);
+  window.oracleCurrentCharacter=graph.nodes[id].label || "";
+  window.dispatchEvent(new CustomEvent("oracle-character-change",{detail:{character:window.oracleCurrentCharacter}}));
   document.querySelectorAll('.category-items button.selected,.other-list button.selected').forEach(b=>b.classList.remove('selected'));
   const selected=list.querySelector(`[data-id="${id}"]`);
   if (selected) selected.classList.add('selected');

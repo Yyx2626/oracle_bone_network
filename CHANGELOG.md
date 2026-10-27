@@ -4,6 +4,24 @@ This retrospective records major changes documented during development. Early wo
 
 本记录回顾开发过程中有据可查的主要改进。早期工作因未持续记录准确发布日期和版本边界，按主题归纳，不作为完整提交历史。下列版本号对应分发的离线包。
 
+## v273 — Contextual supplementary glyphs / 扩展字形随选字显示
+
+- Loading the supplementary collection immediately shows the current graph character. Graph navigation and recognition-candidate selection update the expanded glyphs; text searches remain supported. Lookup includes configured simplified/traditional counterparts with duplicate forms removed.
+- Hide the mirror-matching option in text search; retain it for handwriting and image recognition.
+
+- 载入扩展字库后立即显示关系图当前字的扩展字形；切换中心字及选择识别候选时同步更新，仍支持文字输入检索。查询已配置的繁简对应字并去除重复字形。
+- 文字搜索页隐藏镜像匹配选项，手写及图片识别页保留。
+
+## v272 — Offline loading compatibility / 离线加载兼容修复
+
+- Restored embedded atlas image URLs to avoid file-origin canvas readback restrictions introduced by v271's external images. Retained on-demand supplementary data and first-search recognition feature preparation.
+- Retained responsive mobile graph sizing and drawing-toolbar spacing. Synchronized README editorial changes from GitHub before adding current usage notes.
+- v271 is superseded: its external-atlas optimization was rolled back; this release does not retain the 3.1 MB homepage claim.
+
+- 恢复内嵌图集图片地址，避免 v271 外部图片在本地文件模式下触发画布像素读取限制；保留扩展数据按需载入及首次搜索准备识别特征。
+- 保留手机关系图自适应和画板工具栏间距。先同步 GitHub 上的 README 编辑，再补充当前使用说明。
+- 本版替代 v271：撤回外部图集优化，不再沿用首页3.1 MB的描述。
+
 ## v270 — Documentation of contributions / 贡献说明整理
 
 - Expanded the README with human review, source comparison, image repair, collection organization, similarity-search development, and iterative testing contributions.
@@ -67,3 +85,4 @@ This retrospective records major changes documented during development. Early wo
 - 增加繁简显示、分类展开收起、默认手写识别页、撤销与擦除、原图展开及载入反馈。
 - 反复修复资源加载与打包问题；采用无损图像转换并去除无用资源，精简包体，同时保留必要离线资源及原图查看能力。
 - 增加双语说明、数据来源、局限与使用权利提示。网络展示视觉相似性，不代表已证实的字源关系；识别在本地运行，不依赖训练式 OCR 服务。
+

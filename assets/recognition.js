@@ -40,7 +40,9 @@ function flipShape(shape){const bits=new Uint8Array(1024);for(let y=0;y<32;y++)f
 function chamfer(a,b){let sum=0,count=0;for(let i=0;i<1024;i++)if(a.bits[i]){sum+=Math.min(8,b.distance[i]);count++}return sum/Math.max(1,count)/8}
 function scoreShape(a,b){return a&&b?(chamfer(a,b)+chamfer(b,a))/2:Infinity}
 async function loadHeads(){
-  const items=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(window.ORACLE_BUNDLE.recognitionBase64),c=>c.charCodeAt(0))));
+  const items=JSON.parse(new TextDecoder().decode(window.oracleBase64Bytes(window.ORACLE_BUNDLE.recognitionBase64)));
+  window.ORACLE_BUNDLE.recognitionBase64=null;
+  window.ORACLE_BUNDLE.recognitionBase64=null;
   const sheetSources={synthetic:window.ORACLE_BUNDLE.syntheticAtlas,category:window.ORACLE_BUNDLE.categoryAtlas,'humanum-dog':window.ORACLE_BUNDLE.humanumAtlas,'humanum-all':window.ORACLE_BUNDLE.humanumAllAtlas,'curated-screenshot':window.ORACLE_BUNDLE.curatedScreenshotAtlas};
   const sheets=Object.fromEntries(await Promise.all(Object.entries(sheetSources).filter(([,src])=>src).map(async([name,src])=>[name,await new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=src})])));
   const canvas=document.createElement('canvas');canvas.width=56;canvas.height=56;const g=canvas.getContext('2d',{willReadFrequently:true});
@@ -50,7 +52,7 @@ async function loadHeads(){
     const category=item.atlas==='category', humanum=item.atlas==='humanum-dog', humanumAll=item.atlas==='humanum-all', curated=item.atlas==='curated-screenshot', columns=item.atlas==='synthetic'?1:curated?10:humanumAll?32:humanum?3:category?20:25, index=item.tile??item.id;
     const sheet=sheets[item.atlas];if(!sheet)continue;
     g.fillStyle='white';g.fillRect(0,0,56,56);g.drawImage(sheet,index%columns*56,Math.floor(index/columns)*56,56,56,0,0,56,56);
-    item.img=canvas.toDataURL('image/png');const shape=normalizedBits(g.getImageData(0,0,56,56));if(!shape)continue;item.desc=describe(shape);allVariants.push(item);
+    item.img=canvas.toDataURL('image/png');const shape=normalizedBits(g.getImageData(0,0,56,56));if(!shape)continue;item.shape=shape;allVariants.push(item);
   }
   const grouped=new Map();
   for(const item of [...allVariants].sort((a,b)=>(a.variantRank??9999)-(b.variantRank??9999))){const simple=TRAD_TO_SIMPLE[item.label]||item.label,traditional=SIMPLE_TO_TRAD[simple]||item.label;let d=grouped.get(simple);if(!d){d={ch:simple,img:item.img,variants:[],trad:traditional};grouped.set(simple,d)}d.variants.push(item)}
@@ -98,6 +100,10 @@ async function recognizeShapes(source) {
   const status=document.createElement('p'),track=document.createElement('div'),bar=document.createElement('div');track.className='recognition-track';bar.className='recognition-bar';track.append(bar);progress.append(status,track);container.append(progress);
   const yieldUI=()=>new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)));
   try {
+    for(let i=0;i<allVariants.length;i++){
+      if(i%64===0){status.textContent=`首次搜索：正在准备识别索引 ${i} / ${allVariants.length}`;bar.style.width=`${Math.max(3,100*i/allVariants.length)}%`;await yieldUI();if(run!==recognitionRun)return;}
+      const item=allVariants[i];if(!item.desc){item.desc=describe(item.shape);delete item.shape;}
+    }
     for(let k=0;k<pieces.length;k++){
       const shape=normalizedBits(pieces[k]);if(!shape)continue;
       const directShape=describe(shape),mirroredShape=flipShape(shape),rankings=[];

@@ -35,6 +35,10 @@ The home graph starts with 王 at the center. It shows 12 similar characters by 
 首页以"王"为中心。关系图默认显示12个相似字，可调整数量；点击字形可切换中心，"后退 / Back"和"前进 / Forward"可浏览历史记录。图片识别与手写识别自动综合七种离线模板方法：逐名次合并，同层命中方法更多的优先，并去除重复字。候选每行8个，先显示16个，每次可再展开16个。
 
 
+The supplementary reference collection loads only when requested. Recognition features are prepared on the first image or handwriting search, with progress feedback. Original images remain available for checking cropping and inversion. On narrow screens, the network scales to the available width.
+
+扩展参考字库仅在点击后载入；首次图片或手写搜索时准备识别特征并显示进度。保留原图以核查裁剪与反色；窄屏下关系图按可用宽度等比例缩放。
+
 ## Project contributions and human review / 项目贡献与人工审校
 
 The central contribution is an interactive network for exploring visual similarities among oracle bone glyphs, supported by a curated, traceable collection and offline search tools. Building it involved repeated source comparison, human correction, image-processing revisions, and user testing. The original glyph materials remain attributable to their respective sources.
@@ -135,3 +139,4 @@ Retain the provenance of individual glyphs when citing them. This site's compila
 For personal use by enthusiasts only; please do not use commercially. If any content infringes your rights, please contact the site creator to request its removal.
 
 仅供爱好者个人使用，请勿商用。如有内容侵犯您的权益，请联系网站制作者删除。
+

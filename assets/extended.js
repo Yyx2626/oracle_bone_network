@@ -1,5 +1,6 @@
 (() => {
 let corpus = null;
+let selectedCharacters = null;
 const target = document.querySelector('#extension');
 
 function glyph(form) {
@@ -20,9 +21,9 @@ function glyph(form) {
 function show() {
   if (!corpus) return;
   target.replaceChildren();
-  const chars = [...new Set([...document.querySelector('#query').value].filter(c => c.trim()))];
+  const chars = [...new Set([...(selectedCharacters ?? window.oracleCurrentCharacter ?? '王')].filter(c => c.trim()))];
   if (!chars.length) {
-    target.textContent = '输入汉字后查看扩展字库中的字形。';
+    target.textContent = '当前字形没有已知字头，无法查找扩展字形。';
     return;
   }
   for (const ch of chars.slice(0, 12)) {
@@ -33,7 +34,9 @@ function show() {
     section.append(title);
     const stages = document.createElement('div');
     stages.className = 'stages';
-    const matches = corpus[ch] || [];
+    const keys=[...new Set([ch,window.oracleScript.canonical(ch),window.oracleScript.traditional(ch)])];
+    const seen=new Set();
+    const matches=keys.flatMap(key=>corpus[key]||[]).filter(form=>{const key=JSON.stringify(form);if(seen.has(key))return false;seen.add(key);return true});
     for (const [script, label] of [['oracle-bone','甲骨文'],['bronze','金文'],['clerical','隶书']]) {
       const part = document.createElement('div');
       part.className = 'stage';
@@ -75,8 +78,11 @@ document.querySelector('#load-dataset').onclick = async event => {
   button.disabled = true;
   button.textContent = '正在载入字库（约 4 MB）…';
   try {
+    if(!window.ORACLE_BUNDLE.corpusGzip)await window.oracleLoadScript("assets/extended-data.js?v=271");
     corpus = JSON.parse(await window.oracleDecodeGzip(window.ORACLE_BUNDLE.corpusGzip));
+    window.ORACLE_BUNDLE.corpusGzip=null;
     button.textContent = '扩展字库已载入';
+    selectedCharacters=window.oracleCurrentCharacter || '王';
     show();
   } catch (_) {
     button.disabled = false;
@@ -84,6 +90,7 @@ document.querySelector('#load-dataset').onclick = async event => {
     target.textContent = '扩展字库未能载入，请检查网络连接。';
   }
 };
-document.querySelector('#query').addEventListener('input', show);
+document.querySelector('#query').addEventListener('input',()=>{selectedCharacters=document.querySelector('#query').value || window.oracleCurrentCharacter || '王';show()});
+window.addEventListener('oracle-character-change',event=>{selectedCharacters=event.detail.character;show()});
 window.addEventListener('oracle-script-change', show);
 })();
