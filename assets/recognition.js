@@ -59,8 +59,8 @@ async function loadHeads(){
   allHeads=[...grouped.values()];
   $('#query').oninput=()=>{
     const q=[...new Set([...$('#query').value].filter(x=>x.trim()))];
-    const list=q.length?allHeads.filter(d=>q.some(ch=>window.oracleScript.canonical(ch)===d.ch)||(q.includes('零')&&d.ch==='霝')||q.some(ch=>window.oracleRelatedSearch?.[ch]?.labels.includes(d.ch))):allHeads.slice(0,90);
-    showHeads(list,q.length?'文字检索结果':'已释字（先显示前 90 个）');
+    const list=q.length?allHeads.filter(d=>q.some(ch=>window.oracleScript.canonical(ch)===d.ch)||(q.includes('零')&&d.ch==='霝')||q.some(ch=>window.oracleRelatedSearch?.[ch]?.labels.includes(d.ch))):[];
+    showHeads(list,q.length?'文字检索结果':'检索结果');
     $('#feedback').textContent=q.length&&!list.length?'没有匹配的已释字；可查询扩展字库。':'';
     if(q.includes('零'))$('#feedback').textContent='零：中大未列甲骨字例；相关字霝（雨义）供参照，不是数字0的甲骨写法。';
     const relatedNotes=q.map(ch=>window.oracleRelatedSearch?.[ch]?.note).filter(Boolean);
@@ -90,19 +90,23 @@ function mergeRankTiers(rankings) {
   return out;
 }
 let recognitionRun=0;
+let descriptorsReady=false;
 async function recognizeShapes(source) {
   if(!allVariants.length){$('#feedback').textContent='字形索引正在载入，请稍后重试。';return}
   const run=++recognitionRun;
   const pieces=source===cv?[cv.getContext('2d').getImageData(0,0,cv.width,cv.height)]:samples(source).slice(0,12),results=[];
-  const allowMirror=$('#allow-mirror').checked,methods=['robust','localwarp','aspect','ensemble','contour','skeleton','zones'];
+  const allowMirror=$('#allow-mirror').checked,methods=['robust','localwarp','aspect','ensemble','zones','components'];
   const container=$('#candidates');container.replaceChildren();container.classList.toggle('hidden',false);
   const progress=document.createElement('div');progress.className='recognition-progress';progress.setAttribute('role','status');progress.setAttribute('aria-live','polite');
   const status=document.createElement('p'),track=document.createElement('div'),bar=document.createElement('div');track.className='recognition-track';bar.className='recognition-bar';track.append(bar);progress.append(status,track);container.append(progress);
   const yieldUI=()=>new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)));
   try {
+    if(!descriptorsReady){
     for(let i=0;i<allVariants.length;i++){
       if(i%64===0){status.textContent=`首次搜索：正在准备识别索引 ${i} / ${allVariants.length}`;bar.style.width=`${Math.max(3,100*i/allVariants.length)}%`;await yieldUI();if(run!==recognitionRun)return;}
       const item=allVariants[i];if(!item.desc){item.desc=describe(item.shape);delete item.shape;}
+    }
+    descriptorsReady=true;
     }
     for(let k=0;k<pieces.length;k++){
       const shape=normalizedBits(pieces[k]);if(!shape)continue;
@@ -112,7 +116,7 @@ async function recognizeShapes(source) {
         bar.style.width=`${Math.max(3,100*(k*methods.length+m)/(pieces.length*methods.length))}%`;
         $('#feedback').textContent='正在综合比较字形，请稍候…';await yieldUI();if(run!==recognitionRun)return;
         const ranked=model==='localwarp'?await rankLocalWarp(directShape,allVariants,allowMirror):model==='robust'?rankRobust(directShape,allVariants,allowMirror):allVariants.map(item=>{
-          const direct=modelDistance(directShape,item.desc,model),flipped=allowMirror&&!['左','右'].includes(item.label)?modelDistance(mirroredShape,item.desc,model):Infinity;
+          const direct=(model==='components'?componentDistance(directShape,item.desc):modelDistance(directShape,item.desc,model)),flipped=allowMirror&&!['左','右'].includes(item.label)?(model==='components'?componentDistance(mirroredShape,item.desc):modelDistance(mirroredShape,item.desc,model)):Infinity;
           return {item,score:Math.min(direct,flipped),mirrored:flipped<direct};
         }).sort((a,b)=>a.score-b.score);
         if(run!==recognitionRun)return;
@@ -134,15 +138,15 @@ async function recognizeShapes(source) {
           const image=document.createElement('img');image.src=item.img;image.alt='';b.append(image);
           const simple=TRAD_TO_SIMPLE[item.label]||item.label,label=document.createElement('b');label.textContent=window.oracleScript.display(simple)+(mirrored?' · 镜像':'');b.append(label);
 
-          b.onclick=()=>{showHeads(allHeads.filter(d=>d.ch===simple),'选中的字');if(window.oracleFocus)window.oracleFocus(item.id);else location.hash=`glyph-${item.id}`};grid.append(b);
+          b.onclick=()=>{if(window.oracleFocus)window.oracleFocus(item.id);else location.hash=`glyph-${item.id}`};grid.append(b);
         }
         visibleCount=Math.min(choices.length,visibleCount+16);heading.textContent=`第 ${k+1} 个形状 · 已显示 ${visibleCount} / ${choices.length} 个候选`;
         if(visibleCount<choices.length){more.textContent='显示更多16个';group.append(more)}else more.remove();
       };
       more.onclick=appendChoices;appendChoices();container.append(group);if(choices[0])best.push(choices[0].ch);
     });
-    container.classList.toggle('hidden',!results.length);showHeads(allHeads.filter(d=>best.includes(d.ch)),'图像检索候选');
-    $('#feedback').textContent=results.length?'已综合七种方法：按名次逐层合并，同层命中方法更多的优先；点击候选确认，或显示更多16个。':'未发现有效笔画，请重新绘制。';
+    container.classList.toggle('hidden',!results.length);$('#results').replaceChildren();$('#heading').textContent='图像检索候选';$('#count').textContent='';
+    $('#feedback').textContent=results.length?'已综合六组匹配结果：按名次逐层合并，同层命中方法更多的优先；点击候选确认，或显示更多16个。':'未发现有效笔画，请重新绘制。';
   }catch(error){if(run!==recognitionRun)return;container.replaceChildren();$('#feedback').textContent='识别未完成，请重试。';console.error(error)}
 }
 let headsPromise=null;
@@ -152,7 +156,7 @@ function ensureHeads(){
     headsPromise=(async()=>{
       if(!window.ORACLE_BUNDLE.recognitionBase64)await window.oracleLoadScript('assets/recognition-data.js?v=274');
       await loadHeads();
-    })().catch(error=>{headsPromise=null;allHeads=[];allVariants=[];$('#feedback').textContent='检索索引载入失败，请再次点击重试。';throw error});
+    })().catch(error=>{headsPromise=null;descriptorsReady=false;allHeads=[];allVariants=[];$('#feedback').textContent='检索索引载入失败，请再次点击重试。';throw error});
   }
   return headsPromise;
 }
@@ -161,3 +165,4 @@ $('#recognize').onclick=async()=>{if(!inputImage)return;try{await ensureHeads();
 $('#query').oninput=async()=>{try{await ensureHeads()}catch(error){console.error(error)}};
 document.querySelector('.notice').textContent='网络浏览无需准备检索索引；首次文字、手写或图片搜索时按需载入。';
 window.addEventListener('oracle-script-change',()=>{$('#query')?.oninput?.()});
+

@@ -4,6 +4,36 @@ This retrospective records major changes documented during development. Early wo
 
 本记录回顾开发过程中有据可查的主要改进。早期工作因未持续记录准确发布日期和版本边界，按主题归纳，不作为完整提交历史。下列版本号对应分发的离线包。
 
+## v277 — Reusable index and disconnected-stroke matching / 索引复用与分离笔画匹配
+
+- Skip descriptor preparation after successful initialization in the same page session. Later searches still display matching progress; refreshing the page prepares the index again.
+- Compare component geometry without choosing a dominant stroke, which can change with pen width and rasterization. Contour and skeleton scores remain in the fused score but no longer occupy separate rank-tier slots; six score groups are merged.
+- Development replay of the supplied screenshots: 川 ranks 16th and 水 8th in the merged results. These are targeted checks, not an independent accuracy benchmark.
+
+- 同一页面成功准备索引后，后续搜索直接复用，不再重复准备循环及首次搜索提示；每次仍显示匹配进度，刷新页面后需重新准备。
+- 分离笔画改为比较位置、长宽及数量，不再依赖可能因笔粗或栅格化而换位的最大笔画。轮廓与骨架保留在融合评分中，不再单独占用名次层；共合并六组评分。
+- 所提供截图的开发复测：川排第16、水排第8。仅为针对性检查，不代表独立准确率测试。
+
+## v276 — Persistent search results and detail layout / 搜索结果保留与详情布局
+
+- Keep recognition candidates and expanded pages when selecting a glyph; remove the duplicated top-result and current-selection cards.
+- Place graph explanations immediately below the graph, followed by character details and original-image controls, then the supplementary collection.
+- Suppress redundant source links within CUHK original-image disclosure, retaining the character-page link in the main detail.
+
+- 点击识别候选时保留候选列表及已展开数量，移除重复的首位候选卡片和当前选中字卡片。
+- 关系图说明紧接图下，其后为当前字详情及原图按钮，再下方为扩展字库。
+- 中大原图展开区域不再重复附来源链接，保留主详情中的字库页面入口。
+
+## v275 — Disconnected strokes and relevant results / 分离笔画与结果区修正
+
+- Added a general component matcher comparing the dominant stroke and relative locations and sizes of disconnected strokes. Included it in rank-tier aggregation; no character-specific promotion is used.
+- Removed the default first-90-character list. After graph selection, the loaded result area shows only the selected character; an empty text query no longer displays unrelated entries.
+- Replayed the supplied 水 screenshot as a development example. This is a targeted regression check, not an independent handwriting-accuracy benchmark.
+
+- 增加通用的分离笔画结构比较，比较主笔画及分离短笔画的相对位置和大小，纳入按名次分层合并，不按特定字提权。
+- 移除默认前90字列表；选字后，已加载的结果区仅显示当前字，空文字查询不再显示无关字条。
+- 用用户提供的"水"手写截图进行复测；这是针对性回归检查，不代表独立手写识别准确率。
+
 ## v274 — Network-first startup and search navigation / 网络优先启动与搜索定位
 
 - Defer the recognition metadata script and full search image preparation until the first text, handwriting, or image search. The startup overlay now waits for the graph, not the search index.

@@ -106,7 +106,23 @@ async function rankLocalWarp(shape,items,allowMirror=true) {
   return ranked.sort((a,b)=>a.score-b.score);
 }
 
-const MATCH_MODELS={localwarp:"局部比例容错",robust:"综合容错",aspect:'宽高容错',ensemble:'融合',contour:'双向轮廓',skeleton:'骨架',zones:'分区与投影'};
+function componentFeatures(d){
+ if(d.components)return d.components;
+ const seen=new Uint8Array(1024),parts=[];
+ for(let i=0;i<1024;i++){if(!d.bits[i]||seen[i])continue;const queue=[i];seen[i]=1;let sx=0,sy=0;
+ for(let k=0;k<queue.length;k++){const p=queue[k],x=p%32,y=p>>5;sx+=x;sy+=y;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const nx=x+dx,ny=y+dy,j=ny*32+nx;if(nx>=0&&nx<32&&ny>=0&&ny<32&&d.bits[j]&&!seen[j]){seen[j]=1;queue.push(j)}}}
+ if(queue.length>=2){const xs=queue.map(p=>p%32),ys=queue.map(p=>p>>5);parts.push({n:queue.length,x:sx/queue.length/32,y:sy/queue.length/32,w:(Math.max(...xs)-Math.min(...xs)+1)/32,h:(Math.max(...ys)-Math.min(...ys)+1)/32});}
+ }
+ parts.sort((a,b)=>b.n-a.n);return d.components=parts;
+}
+// Compare disconnected geometry without anchoring to the largest stroke: equal strokes
+// may swap area order with pen width or rasterization. No character-specific priors.
+function componentDistance(a,b){const A=componentFeatures(a),B=componentFeatures(b);if(!A.length||!B.length)return 1;
+ const layout=(P,Q)=>P.reduce((sum,p)=>sum+Math.min(...Q.map(q=>.3*Math.hypot(p.x-q.x,p.y-q.y)+.25*Math.abs(p.h-q.h)+.1*Math.abs(p.w-q.w)+.1*Math.abs(p.n/P[0].n-q.n/Q[0].n)+.25*Math.min(1,Math.abs(Math.log((p.h/p.w)/(q.h/q.w)))/2))),0)/P.length;
+ return .7*(layout(A,B)+layout(B,A))/2+.3*Math.abs(A.length-B.length)/Math.max(A.length,B.length);
+}
+
+const MATCH_MODELS={components:"分离笔画结构",localwarp:"局部比例容错",robust:"综合容错",aspect:'宽高容错',ensemble:'融合',contour:'双向轮廓',skeleton:'骨架',zones:'分区与投影'};
 function installModelControls(){
   const box=document.createElement('div');box.className='model-controls';box.style.cssText='display:flex;flex-direction:column;gap:10px;margin:16px 0';
   box.innerHTML='<label><input type="checkbox" id="allow-mirror" checked>允许左右镜像（左、右除外）</label>';

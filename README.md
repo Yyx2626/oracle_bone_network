@@ -30,9 +30,9 @@ Extract the complete folder and open `index.html`. Keep `index.html` and the `as
 
 解压完整文件夹，双击 `index.html` 即可使用。请将 `index.html` 与 `assets` 文件夹放在同一目录。主要字形、检索和关系图可离线运行；访问来源链接仍需联网。网页右上角可切换简体／繁體，搜索接受已配置对应关系的繁简字。
 
-The home graph starts with 王 at the center. It shows 12 similar characters by default, adjustable from 1 to 32. Click a glyph to recenter the graph; "后退 / Back" and "前进 / Forward" navigate browsing history. Image and handwriting search automatically combine seven offline template methods. Candidates are merged rank by rank, with more same-rank matches taking precedence and duplicate characters removed. Results show eight candidates per row, initially sixteen, with sixteen more available per click.
+The home graph starts with 王 at the center. It shows 12 similar characters by default, adjustable from 1 to 32. Click a glyph to recenter the graph; "后退 / Back" and "前进 / Forward" navigate browsing history. Image and handwriting search automatically combine six groups of offline template scores (contour and skeleton comparisons are included in the fused score). Candidates are merged rank by rank, with more same-rank matches taking precedence and duplicate characters removed. Results show eight candidates per row, initially sixteen, with sixteen more available per click.
 
-首页以"王"为中心。关系图默认显示12个相似字，可调整数量；点击字形可切换中心，"后退 / Back"和"前进 / Forward"可浏览历史记录。图片识别与手写识别自动综合七种离线模板方法：逐名次合并，同层命中方法更多的优先，并去除重复字。候选每行8个，先显示16个，每次可再展开16个。
+首页以"王"为中心。关系图默认显示12个相似字，可调整数量；点击字形可切换中心，"后退 / Back"和"前进 / Forward"可浏览历史记录。图片识别与手写识别自动综合六组离线模板评分（轮廓、骨架已计入融合评分）：逐名次合并，同层命中方法更多的优先，并去除重复字。候选每行8个，先显示16个，每次可再展开16个。
 
 
 The supplementary reference collection loads only when requested. Recognition features are prepared on the first image or handwriting search, with progress feedback. Original images remain available for checking cropping and inversion. On narrow screens, the network scales to the available width.
@@ -51,8 +51,8 @@ The central contribution is an interactive network for exploring visual similari
 - **图像整理与修复。** 对整页对照表进行分格裁剪、留白调整、黑底反色、局部区域裁剪及去噪；根据原图对照和使用反馈，反复修正截断与反色问题，网页提供处理图与原图对照。
 - **Collection organization.** Simplified/traditional headwords are merged for browsing and retrieval while retaining source labels and multiple glyph variants. Shape clustering helps order variants; manually chosen representative forms can take precedence. Modern-meaning categories and source descriptions were revised through review.
 - **字库组织。** 归并繁简字条以便浏览与检索，同时保留来源字头和同字异形；通过字形聚类辅助排序，允许人工指定代表图；反复调整基于现代常见义的类别与来源说明。
-- **Similarity search and evaluation.** Seven template comparisons cover contour, skeleton, spatial projections, feature fusion, aspect tolerance, rotation tolerance, and local proportion changes. Rank-tier aggregation combines their results. Tests with translated, scaled, and slightly rotated glyphs and user-drawn examples guided revisions; these tests do not establish general handwriting accuracy.
-- **相似检索与评估。** 七种模板比较涉及轮廓、骨架、空间投影、特征融合、宽高比例容错、旋转容错及局部比例变化，并按名次分层合并结果。使用字库字形的平移、缩放、轻微旋转变换及用户手绘实例检验并迭代；这些测试不等于普遍手写识别准确率。
+- **Similarity search and evaluation.** Eight template comparisons cover contour, skeleton, spatial projections, feature fusion, aspect tolerance, rotation tolerance, local proportion changes, and disconnected-stroke structure. Rank-tier aggregation combines their results. Tests with translated, scaled, and slightly rotated glyphs and user-drawn examples guided revisions; these tests do not establish general handwriting accuracy.
+- **相似检索与评估。** 模板比较涉及轮廓、骨架、空间投影、特征融合、宽高比例容错、旋转容错、局部比例变化及分离笔画结构，并按名次分层合并结果。使用字库字形的平移、缩放、轻微旋转变换及用户手绘实例检验并迭代；这些测试不等于普遍手写识别准确率。
 - **Application development.** The offline interface includes a recenterable similarity graph, adjustable neighbor counts, browsing history, handwriting undo and erasing, simplified/traditional display, expandable categories, original-image inspection, loading feedback, and paginated recognition candidates.
 - **应用开发。** 离线界面支持关系图切换中心、调整相似字数量、浏览前进后退、手写撤销与擦除、繁简显示、分类展开收起、查看原图、载入反馈和识别候选分批显示。
 
