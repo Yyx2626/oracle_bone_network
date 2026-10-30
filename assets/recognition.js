@@ -61,7 +61,12 @@ async function loadHeads(){
     const q=[...new Set([...$('#query').value].filter(x=>x.trim()))];
     const list=q.length?allHeads.filter(d=>q.some(ch=>window.oracleScript.canonical(ch)===d.ch)||(q.includes('零')&&d.ch==='霝')||q.some(ch=>window.oracleRelatedSearch?.[ch]?.labels.includes(d.ch))):[];
     showHeads(list,q.length?'文字检索结果':'检索结果');
-    $('#feedback').textContent=q.length&&!list.length?'没有匹配的已释字；可查询扩展字库。':'';
+    $('#feedback').textContent='';
+    for(const ch of q.filter(ch=>!list.some(d=>window.oracleScript.canonical(ch)===d.ch))) {
+      const card=window.oracleMissingResult(ch);
+      card.className='card';
+      $('#results').append(card);
+    }
     if(q.includes('零'))$('#feedback').textContent='零：中大未列甲骨字例；相关字霝（雨义）供参照，不是数字0的甲骨写法。';
     const relatedNotes=q.map(ch=>window.oracleRelatedSearch?.[ch]?.note).filter(Boolean);
     if(relatedNotes.length)$('#feedback').textContent=[$('#feedback').textContent,...relatedNotes].filter(Boolean).join(' ');

@@ -135,6 +135,20 @@ function focus(id, recordHistory=true) {
   center = id;
   document.querySelector('#network-back').disabled=navigationTrail.length===0;
   document.querySelector('#network-forward').disabled=forwardTrail.length===0;
+  message.textContent='';
+  if(typeof id === 'string') {
+    svg.replaceChildren();
+    const placeholder=S('g',{'aria-label':'没有匹配的甲骨文'});
+    placeholder.append(S('circle',{cx:500,cy:375,r:59,fill:'#fff',stroke:'#c58c3d','stroke-width':4}));
+    const label=S('text',{x:500,y:454,'data-original-script':'true'});
+    label.style.fontWeight='700';
+    label.textContent=id;
+    placeholder.append(label);
+    svg.append(placeholder);
+    detail.replaceChildren(window.oracleMissingResult(id));
+    list.querySelectorAll('button.selected').forEach(item=>item.classList.remove('selected'));
+    return;
+  }
   const used = new Set([id]);
   const usedNames = new Set(graph.nodes[id].label ? [browseLabel(graph.nodes[id].label)] : []);
   const first = [];
@@ -269,7 +283,7 @@ function find() {
   if(!entry&&related){entry=related.labels.map(ch=>headwords.get(ch)?.[0]).find(Boolean);if(entry){focusSearchResult(entry.id);message.textContent=related.note;return}}
   if(!entry&&requested==='零'){entry=headwords.get('霝')?.[0];if(entry){focusSearchResult(entry.id);message.textContent='零：中大未列甲骨字例。这里展示相关字霝（雨义），不是数字0的甲骨写法。';return}}
   if(!entry&&/^\d{1,2}$/.test(query))entry=graph.nodes.find(n=>n.page===Number(query));
-  if(!entry){message.textContent='没有匹配的已核对字。可在下方的“其他 / 未分类”中按页查看。';return}
+  if(!entry){focus(requested);return}
   message.textContent='';focusSearchResult(entry.id);
 }
 document.querySelector('#neighbor-count').oninput=e=>{
