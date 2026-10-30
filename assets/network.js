@@ -73,7 +73,7 @@ function nodeDetail(id, score = null, shape = null) {
       const button=document.createElement('button'); button.type='button';
       button.className = alternative.id === id ? 'active' : '';
       button.append(tile(alternative,32,31,58));
-      const text=document.createElement('span');text.textContent=alternative.synthetic ? '人工镜像补充' : alternative.atlas==='curated-screenshot' ? (alternative.kind === "opening-list" ? "姓氏图" : alternative.kind === "source-chart" ? "拼音字形表" : alternative.page ? `对照表 第${alternative.page}页` : "补充字形") : alternative.atlas?.startsWith('humanum-') ? `中大 ${alternative.position}` : '扩展';if(hasDifferentOriginalLabels)text.textContent += ` · 原字头 ${alternative.label}`;button.append(text);
+      const text=document.createElement('span');text.textContent=alternative.synthetic ? '人工镜像补充' : alternative.atlas==='curated-screenshot' ? (alternative.kind === "opening-list" ? "姓氏图" : alternative.kind === "source-chart" ? "拼音字形表" : alternative.page ? `对照表 第${alternative.page}页` : "补充字形") : alternative.atlas?.startsWith('humanum-') ? `中大 ${alternative.position}` : '扩展甲骨';if(hasDifferentOriginalLabels)text.textContent += ` · 原字头 ${alternative.label}`;button.append(text);
       button.title=`第${alternative.variantCluster||1}类 · ${alternative.variantClusterSize||1}幅${alternative.representativeCurated?' · 人工指定代表图':alternative.representative?' · 代表图':''}`;
       button.onclick = () => focus(alternative.id); variants.append(button);
     }
@@ -94,7 +94,7 @@ function nodeDetail(id, score = null, shape = null) {
   if (node.label) {
     const a = document.createElement('a');
     a.href = node.sourceUrl || `https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=${encodeURIComponent(node.label)}`;
-    a.target = '_blank'; a.rel = 'noopener'; a.textContent = node.atlas==='curated-screenshot' ? '查看对照表来源 ↗' : '查看中文大学字库字例（仅标注为中大来源的图片取自此处） ↗';
+    a.target = '_blank'; a.rel = 'noopener'; a.textContent = node.atlas==='extended-oracle' ? '查看扩展甲骨数据集来源 ↗' : node.atlas==='curated-screenshot' ? '查看对照表来源 ↗' : '查看中文大学字库字例（仅标注为中大来源的图片取自此处） ↗';
     detail.append(a);
     for(const source of node.sourceLinks||[]){if(source.url===a.href)continue;const link=document.createElement('a');link.href=source.url;link.textContent=source.label+' ↗';link.target='_blank';link.rel='noopener';link.style.display='block';detail.append(link);}
     window.appendOriginalGlyph(detail, node.id);
@@ -102,6 +102,7 @@ function nodeDetail(id, score = null, shape = null) {
 }
 
 function atlasInfo(node) {
+  if(node.atlas==='extended-oracle') return {columns:32,rows:graph.extendedOracleRows,asset:sharedAtlas('extendedOracleAtlas')};
   if(node.atlas==='synthetic') return {columns:1,rows:1,asset:sharedAtlas('syntheticAtlas')};
   if(node.atlas === 'curated-screenshot') return {columns:graph.curatedScreenshotColumns||10,rows:graph.curatedScreenshotRows,asset:sharedAtlas('curatedScreenshotAtlas')};
   if(node.atlas === 'humanum-all') return {columns:graph.humanumAllColumns||32,rows:graph.humanumAllRows,asset:sharedAtlas('humanumAllAtlas')};

@@ -1,0 +1,15 @@
+{
+  "version": 280,
+  "date": "2026-10-29",
+  "new_images": 5,
+  "new_cuhk_heads": [
+    "育",
+    "能"
+  ],
+  "active_forms": 9810,
+  "canonical_groups": 1852,
+  "status": "partial; stopped on HTTP 503; no retry",
+  "official_stats_oracle_heads": 1150,
+  "complete": false,
+  "validated": "all images decode; 9810 nonblank descriptors; graph references resolve; local browser rendering checked"
+}

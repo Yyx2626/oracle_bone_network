@@ -1,0 +1,34 @@
+{
+  "source_forms": 5109,
+  "source_heads": 1781,
+  "imported": 5103,
+  "duplicates": 6,
+  "quarantined": 0,
+  "new_character_groups": 721,
+  "total_forms": 9805,
+  "total_character_groups": 1852,
+  "version": 279,
+  "scope": "Local supplementary oracle forms only; not a complete CUHK inventory",
+  "cuhk_spot_check": [
+    {
+      "char": "育",
+      "oracle_images": 3,
+      "imported_this_version": false
+    },
+    {
+      "char": "能",
+      "oracle_images": 2,
+      "imported_this_version": false
+    },
+    {
+      "char": "作",
+      "oracle_images": 0,
+      "imported_this_version": false
+    },
+    {
+      "char": "使",
+      "oracle_images": 0,
+      "imported_this_version": false
+    }
+  ]
+}

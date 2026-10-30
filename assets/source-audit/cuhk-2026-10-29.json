@@ -1,0 +1,153 @@
+{
+  "checked_at": "2026-10-29",
+  "baseline": "v277",
+  "release": "v278",
+  "scope": "281 component names; 17 absent character names checked on source pages, plus user-reported 屋. This is NOT a complete inventory of all CUHK oracle characters or variants.",
+  "component_names": 281,
+  "component_names_present_before": 263,
+  "symbol_excluded": "◎",
+  "checked_character_pages": 18,
+  "added_characters": [
+    "叀",
+    "爿"
+  ],
+  "added_images": 3,
+  "pages": [
+    {
+      "char": "屋",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E5%B1%8B",
+      "oracle_images": [],
+      "oracle_section_found": true
+    },
+    {
+      "char": "㐭",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E3%90%AD",
+      "oracle_images": [],
+      "oracle_section_found": false
+    },
+    {
+      "char": "丨",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E4%B8%A8",
+      "oracle_images": [],
+      "oracle_section_found": false
+    },
+    {
+      "char": "亯",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E4%BA%AF",
+      "oracle_images": [],
+      "oracle_section_found": true
+    },
+    {
+      "char": "亼",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E4%BA%BC",
+      "oracle_images": [],
+      "oracle_section_found": true
+    },
+    {
+      "char": "冂",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E5%86%82",
+      "oracle_images": [],
+      "oracle_section_found": true
+    },
+    {
+      "char": "叀",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E5%8F%80",
+      "oracle_images": [
+        "/Lexis/lexi-mf/oracle/53c0-1238729638.jpg",
+        "/Lexis/lexi-mf/oracle/53c0-1238729657.jpg"
+      ],
+      "oracle_section_found": true
+    },
+    {
+      "char": "幺",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E5%B9%BA",
+      "oracle_images": [],
+      "oracle_section_found": false
+    },
+    {
+      "char": "彳",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E5%BD%B3",
+      "oracle_images": [],
+      "oracle_section_found": true
+    },
+    {
+      "char": "手",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E6%89%8B",
+      "oracle_images": [],
+      "oracle_section_found": true
+    },
+    {
+      "char": "攴",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E6%94%B4",
+      "oracle_images": [],
+      "oracle_section_found": true
+    },
+    {
+      "char": "毛",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E6%AF%9B",
+      "oracle_images": [],
+      "oracle_section_found": true
+    },
+    {
+      "char": "爿",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E7%88%BF",
+      "oracle_images": [
+        "/Lexis/lexi-mf/oracle/723f-1361348676.jpg"
+      ],
+      "oracle_section_found": true
+    },
+    {
+      "char": "茻",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E8%8C%BB",
+      "oracle_images": [],
+      "oracle_section_found": true
+    },
+    {
+      "char": "辵",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E8%BE%B5",
+      "oracle_images": [],
+      "oracle_section_found": true
+    },
+    {
+      "char": "𠀠",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%F0%A0%80%A0",
+      "oracle_images": [],
+      "oracle_section_found": false
+    },
+    {
+      "char": "𠓛",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%F0%A0%93%9B",
+      "oracle_images": [],
+      "oracle_section_found": true
+    },
+    {
+      "char": "𦥑",
+      "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%F0%A6%A5%91",
+      "oracle_images": [],
+      "oracle_section_found": true
+    }
+  ],
+  "added": [
+    {
+      "id": 6322,
+      "char": "叀",
+      "source": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E5%8F%80",
+      "image": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/oracle/53c0-1238729638.jpg",
+      "sha256": "656969bd02c2c12fc339b63e468867c5bdc770ed38b21d5b6ee637fb6804a86a"
+    },
+    {
+      "id": 6323,
+      "char": "叀",
+      "source": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E5%8F%80",
+      "image": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/oracle/53c0-1238729657.jpg",
+      "sha256": "0db8172c5d878a3e70c5baa598e3ee87512ea40968bd59badb8f95106a12f63f"
+    },
+    {
+      "id": 6324,
+      "char": "爿",
+      "source": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E7%88%BF",
+      "image": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/oracle/723f-1361348676.jpg",
+      "sha256": "eae8e12b465e7956850af98582b2a572cdb2b951bcc25b4ea1f52fc9b595855d"
+    }
+  ]
+}

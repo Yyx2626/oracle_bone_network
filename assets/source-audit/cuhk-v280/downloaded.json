@@ -1,0 +1,42 @@
+[
+  {
+    "label": "育",
+    "sourceUrl": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E8%82%B2",
+    "imageUrl": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/oracle/80b2-1169637244.jpg",
+    "filename": "80b2-1169637244.jpg",
+    "note": "mouseoverlayer(1, '殷墟文字甲編 842')",
+    "sha256": "1b39d3310e4fc69b6de54c472e3957b542bf6ec9b1ac31eb7402e7684d986cd3"
+  },
+  {
+    "label": "育",
+    "sourceUrl": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E8%82%B2",
+    "imageUrl": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/oracle/80b2-1169637305.jpg",
+    "filename": "80b2-1169637305.jpg",
+    "note": "mouseoverlayer(1, '殷墟文字甲編 818')",
+    "sha256": "9df6cf745d14eb2899ef49d11ed3faea7b55e1ddea90fbde5d7c0ac14111596d"
+  },
+  {
+    "label": "育",
+    "sourceUrl": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E8%82%B2",
+    "imageUrl": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/oracle/80b2-1169637420.jpg",
+    "filename": "80b2-1169637420.jpg",
+    "note": "mouseoverlayer(1, '殷契粹編 294')",
+    "sha256": "3e260524ed308f9e08d64bef5fd014132d2ec7c598893e6b6609ca488401b78f"
+  },
+  {
+    "label": "能",
+    "sourceUrl": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E8%83%BD",
+    "imageUrl": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/oracle/80fd-1442569739.jpg",
+    "filename": "80fd-1442569739.jpg",
+    "note": "mouseoverlayer(1, '小屯南地．2169')",
+    "sha256": "05b213fd8c30a0a94da7bc6e2eab0cf811b2f1e34092d1db850a862080142c39"
+  },
+  {
+    "label": "能",
+    "sourceUrl": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E8%83%BD",
+    "imageUrl": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/oracle/80fd-1442569751.jpg",
+    "filename": "80fd-1442569751.jpg",
+    "note": "mouseoverlayer(1, '小屯南地．2169')",
+    "sha256": "5cf9660907015147f5ae5b074959e4b2340f82bc96c89a59af541b218fc6255c"
+  }
+]

@@ -35,9 +35,9 @@ The home graph starts with 王 at the center. It shows 12 similar characters by 
 首页以"王"为中心。关系图默认显示12个相似字，可调整数量；点击字形可切换中心，"后退 / Back"和"前进 / Forward"可浏览历史记录。图片识别与手写识别自动综合六组离线模板评分（轮廓、骨架已计入融合评分）：逐名次合并，同层命中方法更多的优先，并去除重复字。候选每行8个，先显示16个，每次可再展开16个。
 
 
-The supplementary reference collection loads only when requested. Recognition features are prepared on the first image or handwriting search, with progress feedback. Original images remain available for checking cropping and inversion. On narrow screens, the network scales to the available width.
+Oracle-bone forms from the supplementary dataset are now included in character details, handwriting search, and the similarity graph, with their dataset labels and provenance retained. The separate multi-period reference collection still loads only when requested. Recognition features are prepared on the first image or handwriting search, with progress feedback. Original images remain available for checking cropping and inversion. On narrow screens, the network scales to the available width.
 
-扩展参考字库仅在点击后载入；首次图片或手写搜索时准备识别特征并显示进度。保留原图以核查裁剪与反色；窄屏下关系图按可用宽度等比例缩放。
+扩展库中的甲骨字形已纳入各字详情、手写检索和相似网络，保留数据集原标签及来源；独立的历代字形参考区仍按需载入；首次图片或手写搜索时准备识别特征并显示进度。保留原图以核查裁剪与反色；窄屏下关系图按可用宽度等比例缩放。
 
 ## Project contributions and human review / 项目贡献与人工审校
 
@@ -81,8 +81,8 @@ See [CHANGELOG.md](CHANGELOG.md) for a retrospective of the major changes.
 
 3. **Third-party supplementary reference collection / 第三方扩展参考字库**  
    https://github.com/leonsilicon/character-evolution-dataset-1bit  
-   Used in the separate supplementary reference section and containing forms from different periods. Unreviewed supplementary glyphs are excluded from the main handwriting matcher and graph. Not every image should be treated as a typical oracle bone form. Consult the original repository for licensing and attribution requirements.  
-   供独立扩展参考区使用，含不同时代字形。未审校的扩展字形不参与主字库的手绘匹配和关系图；不能把其中所有图都视为典型甲骨文。相关许可及署名要求以原仓库为准。
+   By Leon Si; the upstream README declares MIT. In v279, 5,103 forms classified by that dataset as oracle-bone were added to the main matcher and graph after removing 6 pixel-identical duplicates within the same simplified/traditional character group. Original labels and 1-bit images are preserved; these records have not received individual expert review. Bronze, clerical, and other stages are not included in oracle matching. Source labels may reflect different readings or historical correspondences; not every image is a typical form. Existing curated representatives retain priority. Consult the original repository and underlying materials for rights and attribution.  
+   由Leon Si整理，上游README声明MIT许可。v279将数据集标为甲骨文的5103幅字形纳入主检索和网络，同一繁简字组内6幅像素一致重复图未重复加入。保留原始字头及1-bit图片，尚未经逐图专家审校；金文、隶书等不参与甲骨匹配。标签可能涉及不同释读或古今字对应，不能把所有字形都当作典型写法。已有人工代表图仍优先。原始资料的权利及署名要求须结合其出处核实。
 
 4. **CCDI "A Character a Day" articles / 中央纪委国家监委网站"每日一字"**  
    Character index / 字目索引: http://m.ccdi.gov.cn/content/cc/2e/16132.html

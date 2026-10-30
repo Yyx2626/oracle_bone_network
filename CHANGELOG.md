@@ -4,6 +4,38 @@ This retrospective records major changes documented during development. Early wo
 
 本记录回顾开发过程中有据可查的主要改进。早期工作因未持续记录准确发布日期和版本边界，按主题归纳，不作为完整提交历史。下列版本号对应分发的离线包。
 
+## v280 — CUHK gap filling / 中大字例补缺
+
+- Added five CUHK oracle images: 育 (3) and 能 (2). Their original files and bibliographic captions are retained. These variants now participate in handwriting matching and the similarity network, taking priority over supplementary dataset variants.
+- Removed black side margins from 育; inverted 能 to black strokes on white. All five untouched originals remain available for comparison.
+- Total searchable forms: 9,810; simplified/traditional groups: 1,852. The next source request returned HTTP 503; remote requests stopped without retry. The official statistics page reports 1,150 oracle headwords, but a complete inventory has not been verified.
+
+- 补入育3幅、能2幅中大甲骨原图，保留出处及未经处理的原图，加入手写检索和相似网络；同字展示优先于扩展来源。
+- 育裁去两侧黑边，能反色为白底黑线。总计9810幅、1852个繁简字组。
+- 后续请求收到HTTP 503，已停止且未快速重试。官方统计1150个甲骨字头，但本轮未完成全库覆盖核验。
+
+## v279 — Supplementary oracle integration / 扩展甲骨入库
+
+- Integrated 5,103 oracle forms after excluding six exact duplicates within canonical groups: now 9,805 forms in 1,852 simplified/traditional groups (+721). Variants participate in character details, handwriting matching and the rebuilt similarity network; existing curated representatives retain priority. Bronze and clerical forms remain reference-only.
+- Checked bitmap validity and filename/label agreement; this is not scholarly review. Original bitmaps and source labels are retained. The upstream README attributes the dataset to Leon Si and declares MIT licensing.
+- Additional CUHK spot checks found 育 (3 oracle images) and 能 (2), pending direct image acquisition; 作 and 使 had no oracle images in the inspected pages. This is not a complete CUHK inventory audit.
+
+- 本地扩展库甲骨部分去除6幅同字像素一致重复图，纳入5103幅；现可检索9805幅、1852个繁简字组（新增721组）。扩展图加入详情、手写匹配与重算的相似网络；原有人工代表图优先，金文和隶书仅作参考。
+- 已检查位图有效性及文件名字头一致性，不等同于逐字释读审校。保留原图与来源标签。
+- 中大抽查发现育3幅、能2幅甲骨图尚待补采；作、使所查页面未列甲骨图。本次不宣称中大全库已补齐。
+
+## v278 — Source coverage audit / 来源覆盖核验
+
+- Checked 281 CUHK oracle component names against v277; inspected source pages for 17 absent character names and 屋. Component names alone do not constitute a complete inventory of oracle characters or glyph variants.
+- Added 叀 (2 glyphs) and 爿 (1 glyph), with untouched originals, source URLs, handwriting entries, categories, and updated incoming/outgoing similarity edges. 爿 uses a cropped, inverted dark panel with detached scan noise removed; the raw original remains available for comparison.
+- 屋 has a CUHK character page but its oracle section contained no images when checked; images from other historical scripts were not imported as oracle glyphs.
+- Active collection: 4,702 glyphs and 1,131 simplified/traditional groups. The detailed checked-page list is in assets/source-audit/cuhk-2026-10-29.csv. This release does not claim complete CUHK coverage.
+
+- 比对中大甲骨目录的281个部件名称，逐页核验缺少的17个字头及用户提出的“屋”；部件名称不等于全部甲骨字头及异体图清单。
+- 补入叀2幅、爿1幅，保留未经处理的原图与来源，更新手写索引、分类及双向网络邻居。爿仅裁取黑底区域反色并清除分离噪点，可展开原图核对。
+- 中大“屋”字条的甲骨栏在核验时为空；未将其他文字时期的图片误作甲骨文加入。
+- 当前有效图库4702幅、繁简合并后1131组。核验清单见assets/source-audit/cuhk-2026-10-29.csv；本版不表示已完成中大全库补齐。
+
 ## v277 — Reusable index and disconnected-stroke matching / 索引复用与分离笔画匹配
 
 - Skip descriptor preparation after successful initialization in the same page session. Later searches still display matching progress; refreshing the page prepares the index again.

@@ -76,17 +76,17 @@ function show() {
 document.querySelector('#load-dataset').onclick = async event => {
   const button = event.currentTarget;
   button.disabled = true;
-  button.textContent = '正在载入字库（约 4 MB）…';
+  button.textContent = '正在载入历代参考（约 4 MB）…';
   try {
     if(!window.ORACLE_BUNDLE.corpusGzip)await window.oracleLoadScript("assets/extended-data.js?v=271");
     corpus = JSON.parse(await window.oracleDecodeGzip(window.ORACLE_BUNDLE.corpusGzip));
     window.ORACLE_BUNDLE.corpusGzip=null;
-    button.textContent = '扩展字库已载入';
+    button.textContent = '历代字形参考已载入';
     selectedCharacters=window.oracleCurrentCharacter || '王';
     show();
   } catch (_) {
     button.disabled = false;
-    button.textContent = '重试载入扩展字库';
+    button.textContent = '重试载入历代参考';
     target.textContent = '扩展字库未能载入，请检查网络连接。';
   }
 };

@@ -1,0 +1,16 @@
+[
+  {
+    "char": "育",
+    "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E8%82%B2",
+    "oracle_images": 3
+  },
+  {
+    "char": "能",
+    "url": "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=%E8%83%BD",
+    "oracle_images": 2
+  },
+  {
+    "error": "<HTTPError 503: 'Service Unavailable'>",
+    "status": "stopped; no retries"
+  }
+]

@@ -18,10 +18,10 @@ function showHeads(list, title='已释字') {
       for(const v of d.variants){
         const b=document.createElement('button');b.type='button';b.className='glyph-choice';b.title=`${v.source} ${v.page?`第${v.page}页`:''} ${v.position||''}`;
         const small=document.createElement('img');small.src=v.img;small.alt=`${shown}的另一甲骨文字形`;
-        b.append(small);b.onclick=()=>{img.src=v.img;originalBox?.remove();originalBox=window.appendOriginalGlyph(card,v.id);link.href=v.sourceUrl||`https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=${encodeURIComponent(d.trad)}`;link.textContent=v.atlas==='curated-screenshot'?'查看对照表来源 ↗':'查看香港中文大学字库字例 ↗';if(window.oracleFocus)window.oracleFocus(v.id);else location.hash=`glyph-${v.id}`};strip.append(b);
+        b.append(small);b.onclick=()=>{img.src=v.img;originalBox?.remove();originalBox=window.appendOriginalGlyph(card,v.id);link.href=v.sourceUrl||`https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=${encodeURIComponent(d.trad)}`;link.textContent=v.atlas==='extended-oracle'?'查看扩展甲骨数据集来源 ↗':v.atlas==='curated-screenshot'?'查看对照表来源 ↗':'查看香港中文大学字库字例 ↗';if(window.oracleFocus)window.oracleFocus(v.id);else location.hash=`glyph-${v.id}`};strip.append(b);
       }card.append(strip);
     }
-    const link=document.createElement('a');link.href=d.variants[0]?.sourceUrl || `https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=${encodeURIComponent(d.trad)}`;link.target='_blank';link.rel='noopener';link.textContent=d.variants[0]?.atlas==='curated-screenshot'?'查看对照表来源 ↗':'查看中文大学「汉语多功能字库」 ↗';card.append(link);let originalBox=window.appendOriginalGlyph(card,d.variants[0]?.id);fragment.append(card);
+    const link=document.createElement('a');link.href=d.variants[0]?.sourceUrl || `https://humanum.arts.cuhk.edu.hk/Lexis/lexi-mf/search.php?word=${encodeURIComponent(d.trad)}`;link.target='_blank';link.rel='noopener';link.textContent=d.variants[0]?.atlas==='extended-oracle'?'查看扩展甲骨数据集来源 ↗':d.variants[0]?.atlas==='curated-screenshot'?'查看对照表来源 ↗':'查看中文大学「汉语多功能字库」 ↗';card.append(link);let originalBox=window.appendOriginalGlyph(card,d.variants[0]?.id);fragment.append(card);
   }
   $('#results').append(fragment);
 }
@@ -43,13 +43,13 @@ async function loadHeads(){
   const items=JSON.parse(new TextDecoder().decode(window.oracleBase64Bytes(window.ORACLE_BUNDLE.recognitionBase64)));
   window.ORACLE_BUNDLE.recognitionBase64=null;
   window.ORACLE_BUNDLE.recognitionBase64=null;
-  const sheetSources={synthetic:window.ORACLE_BUNDLE.syntheticAtlas,category:window.ORACLE_BUNDLE.categoryAtlas,'humanum-dog':window.ORACLE_BUNDLE.humanumAtlas,'humanum-all':window.ORACLE_BUNDLE.humanumAllAtlas,'curated-screenshot':window.ORACLE_BUNDLE.curatedScreenshotAtlas};
+  const sheetSources={'extended-oracle':window.ORACLE_BUNDLE.extendedOracleAtlas,synthetic:window.ORACLE_BUNDLE.syntheticAtlas,category:window.ORACLE_BUNDLE.categoryAtlas,'humanum-dog':window.ORACLE_BUNDLE.humanumAtlas,'humanum-all':window.ORACLE_BUNDLE.humanumAllAtlas,'curated-screenshot':window.ORACLE_BUNDLE.curatedScreenshotAtlas};
   const sheets=Object.fromEntries(await Promise.all(Object.entries(sheetSources).filter(([,src])=>src).map(async([name,src])=>[name,await new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=src})])));
   const canvas=document.createElement('canvas');canvas.width=56;canvas.height=56;const g=canvas.getContext('2d',{willReadFrequently:true});
   let prepared=0;
   for(const item of items){
     if(++prepared%64===0)await new Promise(resolve=>setTimeout(resolve,0));
-    const category=item.atlas==='category', humanum=item.atlas==='humanum-dog', humanumAll=item.atlas==='humanum-all', curated=item.atlas==='curated-screenshot', columns=item.atlas==='synthetic'?1:curated?10:humanumAll?32:humanum?3:category?20:25, index=item.tile??item.id;
+    const category=item.atlas==='category', humanum=item.atlas==='humanum-dog', humanumAll=item.atlas==='humanum-all', curated=item.atlas==='curated-screenshot', columns=item.atlas==='extended-oracle'?32:item.atlas==='synthetic'?1:curated?10:humanumAll?32:humanum?3:category?20:25, index=item.tile??item.id;
     const sheet=sheets[item.atlas];if(!sheet)continue;
     g.fillStyle='white';g.fillRect(0,0,56,56);g.drawImage(sheet,index%columns*56,Math.floor(index/columns)*56,56,56,0,0,56,56);
     item.img=canvas.toDataURL('image/png');const shape=normalizedBits(g.getImageData(0,0,56,56));if(!shape)continue;item.shape=shape;allVariants.push(item);
